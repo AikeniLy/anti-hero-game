@@ -52,6 +52,59 @@ body {
   padding: 32px 16px;
 }
 
+/* ---------- Sound toggle + confetti ---------- */
+
+.sound-toggle {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 50;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  color: var(--text-main);
+  border-radius: 999px;
+  width: 42px;
+  height: 42px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.sound-toggle:hover {
+  border-color: var(--gold);
+  transform: translateY(-1px);
+}
+
+.sound-toggle:active {
+  transform: scale(0.95);
+}
+
+.confetti-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  opacity: 0.95;
+  animation: confettiFly 900ms ease-out forwards;
+}
+
+@keyframes confettiFly {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.4); opacity: 0; }
+}
+
 /* ---------- Screens ---------- */
 
 .screen {
@@ -189,6 +242,16 @@ body {
   font-size: 0.95rem;
 }
 
+.progress-counter.pulse {
+  animation: counterPulse 420ms ease;
+}
+
+@keyframes counterPulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.25); }
+  100% { transform: scale(1); }
+}
+
 .evidence-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -285,6 +348,23 @@ body {
   margin-top: auto;
 }
 
+.clue-source {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.clue-source a {
+  color: var(--lavender-dim);
+  text-decoration: underline;
+  text-decoration-color: rgba(201, 182, 255, 0.35);
+}
+
+.clue-source a:hover {
+  color: var(--lavender);
+}
+
 /* Mini puzzle inside tile 2 */
 
 .puzzle-choices {
@@ -315,11 +395,26 @@ body {
 .puzzle-choice-btn.correct {
   border-color: #7fd88f;
   background: rgba(127, 216, 143, 0.15);
+  animation: correctPulse 600ms ease;
 }
 
 .puzzle-choice-btn.incorrect {
   border-color: var(--danger);
   background: rgba(224, 116, 138, 0.15);
+  animation: shakeX 350ms ease;
+}
+
+@keyframes correctPulse {
+  0% { box-shadow: 0 0 0 0 rgba(127, 216, 143, 0.5); }
+  100% { box-shadow: 0 0 0 10px rgba(127, 216, 143, 0); }
+}
+
+@keyframes shakeX {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
 }
 
 .puzzle-choice-btn:disabled {
@@ -366,6 +461,15 @@ body {
   border-radius: var(--radius);
   padding: 26px 22px;
   box-shadow: var(--shadow-lg);
+}
+
+.case-card.case-enter {
+  animation: caseEnter 380ms ease;
+}
+
+@keyframes caseEnter {
+  from { opacity: 0; transform: translateX(18px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 .case-title {
@@ -468,6 +572,24 @@ body {
   color: var(--text-main);
 }
 
+.debate-sources {
+  margin: 10px 0 0;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+.debate-sources a {
+  color: var(--lavender-dim);
+  text-decoration: underline;
+  text-decoration-color: rgba(201, 182, 255, 0.35);
+  font-style: normal;
+}
+
+.debate-sources a:hover {
+  color: var(--lavender);
+}
+
 .case-nav {
   margin-top: 22px;
   text-align: right;
@@ -512,7 +634,17 @@ body {
 .sources-footer p {
   font-size: 0.78rem;
   margin: 0;
-  line-height: 1.7;
+  line-height: 1.9;
+}
+
+.sources-footer a {
+  color: var(--lavender-dim);
+  text-decoration: underline;
+  text-decoration-color: rgba(201, 182, 255, 0.35);
+}
+
+.sources-footer a:hover {
+  color: var(--lavender);
 }
 
 /* ---------- Small screens ---------- */

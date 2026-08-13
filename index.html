@@ -9,6 +9,9 @@
 </head>
 <body>
 
+  <button id="btn-sound-toggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="Toggle sound effects">🔊</button>
+  <div id="confetti-layer" class="confetti-layer" aria-hidden="true"></div>
+
   <main id="app">
 
     <!-- ============ SCREEN 1: LANDING ============ -->
@@ -62,6 +65,7 @@
             <div id="debate-reveal" class="debate-reveal hidden">
               <p class="debate-kicker">Here's where the real conversation landed:</p>
               <p id="debate-text" class="debate-text"></p>
+              <p id="debate-sources" class="debate-sources"></p>
             </div>
 
             <div class="case-nav">
@@ -85,7 +89,16 @@
 
   <footer id="sources-footer" class="sources-footer">
     <h3>Sources</h3>
-    <p>BBC News &middot; Rolling Stone &middot; Today.com &middot; NBC News (THINK) &middot; Rappler &middot; Wikipedia ("Anti-Hero (song)") &middot; Genius (lyrics)</p>
+    <p>
+      <a href="https://feeds.bbci.co.uk/news/entertainment-arts-63414044" target="_blank" rel="noopener noreferrer">BBC News</a> &middot;
+      <a href="https://www.rollingstone.com/music/music-news/taylor-swift-anti-hero-video-fat-controversy-1234619554/" target="_blank" rel="noopener noreferrer">Rolling Stone</a> &middot;
+      <a href="https://www.today.com/popculture/music/taylor-swift-anti-hero-song-meaning-midnights-rcna50503" target="_blank" rel="noopener noreferrer">Today.com</a> &middot;
+      <a href="https://www.nbcnews.com/think/opinion/taylor-swift-should-not-remove-fatphobic-scene-anti-hero-video-rcna54617" target="_blank" rel="noopener noreferrer">NBC News (THINK)</a> &middot;
+      <a href="https://www.rappler.com/entertainment/celebrities/taylor-swift-anti-hero-controversy-fatphobia-feminist-politics/" target="_blank" rel="noopener noreferrer">Rappler</a> &middot;
+      <a href="https://www.theringer.com/2022/10/25/music/midnights-taylor-swift-review" target="_blank" rel="noopener noreferrer">The Ringer</a> &middot;
+      <a href="https://en.wikipedia.org/wiki/Anti-Hero_(song)" target="_blank" rel="noopener noreferrer">Wikipedia ("Anti-Hero (song)")</a> &middot;
+      <a href="https://genius.com" target="_blank" rel="noopener noreferrer">Genius (lyrics)</a>
+    </p>
   </footer>
 
   <script src="script.js"></script>
