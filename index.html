@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Anti-Hero: Case File Unlocked</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <main id="app">
+
+    <!-- ============ SCREEN 1: LANDING ============ -->
+    <section id="screen-landing" class="screen active">
+      <div class="landing-wrap">
+        <p class="eyebrow">Popular Music &middot; Case Study</p>
+        <h1 class="title">Anti-Hero<span class="title-sub">Case File Unlocked</span></h1>
+        <p class="intro-line">Unlock the evidence, then file your verdict.</p>
+        <button id="btn-start" class="btn btn-primary" type="button">Start Investigation</button>
+      </div>
+    </section>
+
+    <!-- ============ SCREEN 2: EVIDENCE BOARD ============ -->
+    <section id="screen-board" class="screen">
+      <div class="board-wrap">
+        <header class="board-header">
+          <h2>Evidence Board</h2>
+          <p class="board-instructions">Tap each case file to unlock the evidence inside.</p>
+          <p class="progress-counter"><span id="unlocked-count">0</span>/5 clues unlocked</p>
+        </header>
+
+        <div id="evidence-grid" class="evidence-grid"></div>
+
+        <div class="board-footer">
+          <p id="board-lock-msg" class="lock-msg">Unlock all 5 clues to proceed to the verdict round.</p>
+          <button id="btn-to-verdict" class="btn btn-primary" type="button" disabled>File Your Verdict</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SCREEN 3: VERDICT ROUND ============ -->
+    <section id="screen-verdict" class="screen">
+      <div class="verdict-wrap">
+        <header class="verdict-header">
+          <p class="verdict-kicker">Case file complete. Now file your verdict.</p>
+          <p class="case-progress" id="case-progress">Case 1 of 4</p>
+        </header>
+
+        <div class="case-card">
+          <h2 id="case-title" class="case-title"></h2>
+          <p id="case-prompt" class="case-prompt"></p>
+
+          <div id="stance-group" class="stance-group" role="group" aria-label="Pick your stance"></div>
+
+          <div id="response-area" class="response-area hidden">
+            <label for="verdict-textarea" class="textarea-label">Defend your verdict &mdash; reference at least one clue from the case file.</label>
+            <textarea id="verdict-textarea" class="verdict-textarea" rows="5" placeholder="Type your reasoning here..."></textarea>
+
+            <button id="btn-reveal-debate" class="btn btn-secondary" type="button">Reveal the real debate</button>
+
+            <div id="debate-reveal" class="debate-reveal hidden">
+              <p class="debate-kicker">Here's where the real conversation landed:</p>
+              <p id="debate-text" class="debate-text"></p>
+            </div>
+
+            <div class="case-nav">
+              <button id="btn-next-case" class="btn btn-primary" type="button">Next Case</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SCREEN 4: FINAL ============ -->
+    <section id="screen-final" class="screen">
+      <div class="final-wrap">
+        <p class="eyebrow">Case Closed</p>
+        <h2 class="title final-title">Investigation Closed</h2>
+        <p class="final-line">Thanks for working the case file. There's no score here &mdash; just the case for discussion, and the verdict is yours to keep arguing about after class.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer id="sources-footer" class="sources-footer">
+    <h3>Sources</h3>
+    <p>BBC News &middot; Rolling Stone &middot; Today.com &middot; NBC News (THINK) &middot; Rappler &middot; Wikipedia ("Anti-Hero (song)") &middot; Genius (lyrics)</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
