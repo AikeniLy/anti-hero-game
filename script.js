@@ -375,17 +375,19 @@
       var tw = Math.min(targetEl.offsetWidth || 90, columnWidth - 16);
       var th = targetEl.offsetHeight || 34;
 
-      var guardOffsetX = columnWidth * 0.27;
-      var guardW = 20;
-      var guardH = 20;
+      // Guards are centered in the column, stacked directly in the bolt's
+      // flight path (not off to the sides) so they visibly and reliably
+      // block the shot instead of leaving a gap a bolt can slip through.
+      var guardW = Math.min(columnWidth * 0.72, 80);
+      var guardH = 12;
 
-      var guardLeftEl = document.createElement('div');
-      guardLeftEl.className = 'blaster-guard';
-      guardsLayer.appendChild(guardLeftEl);
+      var guardLowerEl = document.createElement('div');
+      guardLowerEl.className = 'blaster-guard';
+      guardsLayer.appendChild(guardLowerEl);
 
-      var guardRightEl = document.createElement('div');
-      guardRightEl.className = 'blaster-guard';
-      guardsLayer.appendChild(guardRightEl);
+      var guardUpperEl = document.createElement('div');
+      guardUpperEl.className = 'blaster-guard';
+      guardsLayer.appendChild(guardUpperEl);
 
       columns.push({
         choiceIdx: choiceIdx,
@@ -394,8 +396,8 @@
         targetEl: targetEl, targetW: tw, targetH: th, targetAlive: true,
         targetX: centerX - tw / 2, targetY: 0,
         guards: [
-          { el: guardLeftEl, dx: -guardOffsetX, w: guardW, h: guardH, alive: true, x: 0, y: 0 },
-          { el: guardRightEl, dx: guardOffsetX, w: guardW, h: guardH, alive: true, x: 0, y: 0 }
+          { el: guardLowerEl, gap: 70, w: guardW, h: guardH, alive: true, x: 0, y: 0 },
+          { el: guardUpperEl, gap: 36, w: guardW, h: guardH, alive: true, x: 0, y: 0 }
         ]
       });
     });
@@ -407,9 +409,8 @@
       columns: columns,
       columnWidth: columnWidth,
       waveY: 14,
-      maxWaveY: areaH * 0.32,
-      descentSpeed: 5,
-      guardOffsetY: 46,
+      maxWaveY: areaH * 0.55,
+      descentSpeed: 6,
       bolts: [],
       shipX: areaW / 2 - shipW / 2,
       shipW: shipW,
@@ -448,16 +449,17 @@
         }
         col.guards.forEach(function (g) {
           if (!g.alive) return;
-          g.x = col.centerX + g.dx - g.w / 2;
-          g.y = s.waveY + s.guardOffsetY;
+          g.x = col.centerX - g.w / 2;
+          g.y = s.waveY + g.gap;
           g.el.style.left = g.x + 'px';
           g.el.style.top = g.y + 'px';
+          g.el.style.width = g.w + 'px';
         });
       });
 
       for (var i = s.bolts.length - 1; i >= 0; i--) {
         var b = s.bolts[i];
-        b.y -= 130 * dt;
+        b.y -= 260 * dt;
         b.el.style.top = b.y + 'px';
 
         if (b.y < -20) {
@@ -507,28 +509,30 @@
   function fireBolt() {
     var s = blasterState;
     if (!s || s.resolved) return;
-    if (s.bolts.length > 0) return; // one bolt in flight at a time
 
-    var column = Math.max(0, Math.min(s.targets.length - 1, Math.floor((s.shipX + s.shipW / 2) / s.columnWidth)));
+    var column = Math.max(0, Math.min(s.columns.length - 1, Math.floor((s.shipX + s.shipW / 2) / s.columnWidth)));
+
+    // Bolt travels straight up the center of whichever column the ship is
+    // over, so it lines up exactly with that column's centered guards —
+    // no near-miss gaps to slip through.
+    var centerX = s.columns[column].centerX;
 
     var el = document.createElement('div');
     el.className = 'blaster-bolt';
     s.boltsLayer.appendChild(el);
-    var bx = s.shipX + s.shipW / 2 - 2;
+    var bx = centerX - 2;
     var by = s.areaH - 34;
     el.style.left = bx + 'px';
     el.style.top = by + 'px';
     s.bolts.push({ el: el, x: bx, y: by, column: column });
 
     playSound('shoot');
-    updateFireButtonState();
   }
 
   function updateFireButtonState() {
     var btn = document.getElementById('btn-blaster-fire');
     if (!btn) return;
-    var canFire = !!(blasterState && !blasterState.resolved && blasterState.bolts.length === 0);
-    btn.disabled = !canFire;
+    btn.disabled = !(blasterState && !blasterState.resolved);
   }
 
   function wireBlasterControls() {
@@ -544,7 +548,12 @@
       blasterState.shipEl.style.left = x + 'px';
     }
 
+    playArea.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+    });
+
     playArea.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return; // left click only
       dragging = true;
       playArea.setPointerCapture(e.pointerId);
       moveShipTo(e.clientX);
@@ -568,7 +577,7 @@
       } else if (e.key === 'ArrowRight') {
         blasterState.shipX = Math.min(blasterState.areaW - blasterState.shipW, blasterState.shipX + 24);
         blasterState.shipEl.style.left = blasterState.shipX + 'px';
-      } else if (e.key === ' ') {
+      } else if (e.key === 'e' || e.key === 'E') {
         e.preventDefault();
         fireBolt();
       }

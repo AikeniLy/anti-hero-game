@@ -398,19 +398,16 @@ body {
 
 .blaster-guard {
   position: absolute;
-  width: 20px;
-  height: 20px;
-  background: linear-gradient(155deg, #4a3a6b, #2a2050);
-  border: 2px solid var(--lavender-dim);
-  border-radius: 4px;
-  transform: rotate(45deg);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(90deg, transparent, rgba(155, 138, 196, 0.55) 12%, rgba(155, 138, 196, 0.55) 88%, transparent);
+  border-top: 2px solid var(--lavender-dim);
+  border-bottom: 2px solid var(--lavender-dim);
+  box-shadow: 0 0 8px rgba(155, 138, 196, 0.4);
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 .blaster-guard.guard-broken {
   opacity: 0;
-  transform: rotate(45deg) scale(0.3);
+  transform: scaleX(0.3);
 }
 
 .blaster-target {
