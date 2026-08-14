@@ -89,12 +89,13 @@
         'It’s genuine vulnerability',
         'It’s a smart PR move',
         'Both at once — and that’s what makes it work',
-        'It’s complicated — none of these quite fit'
+        'None of these fit'
       ],
       debate: 'Critics have praised the song’s directness as unusually candid for a global pop star, while others have noted that confessional openness has become a reliable commercial strategy across pop music — the two readings coexist in most critical coverage rather than one replacing the other.',
       sources: [
         { name: 'The Ringer', url: 'https://www.theringer.com/2022/10/25/music/midnights-taylor-swift-review' }
-      ]
+      ],
+      relatedClues: [0, 4]
     },
     {
       title: 'Fiction Inside a “True” Song',
@@ -103,12 +104,13 @@
         'Fiction can still be emotionally true',
         'Calling it ‘confessional’ oversells it',
         'The line doesn’t really matter',
-        'It’s complicated — none of these quite fit'
+        'None of these fit'
       ],
       debate: 'Music critics have generally read the fictional bridge as an extension of Swift’s real anxieties rather than a break from them — using invented scenarios to dramatize genuine fears is a device, not a contradiction, in most published analysis of the song.',
       sources: [
         { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Anti-Hero_(song)' }
-      ]
+      ],
+      relatedClues: [2, 0]
     },
     {
       title: 'The Self-Edit',
@@ -117,13 +119,14 @@
         'Listening to your audience is a strength',
         'Art shouldn’t bend to backlash',
         'Depends entirely on what’s being changed',
-        'It’s complicated — none of these quite fit'
+        'None of these fit'
       ],
       debate: 'Coverage at the time was split — some outlets and fans framed the edit as a thoughtful response to legitimate criticism, while others (including some who empathized with her disclosure) argued the edit undercut the honesty of the original scene. There was no clear consensus.',
       sources: [
         { name: 'NBC News (THINK)', url: 'https://www.nbcnews.com/think/opinion/taylor-swift-should-not-remove-fatphobic-scene-anti-hero-video-rcna54617' },
         { name: 'Rappler', url: 'https://www.rappler.com/entertainment/celebrities/taylor-swift-anti-hero-controversy-fatphobia-feminist-politics/' }
-      ]
+      ],
+      relatedClues: [3]
     },
     {
       title: 'Are We All Anti-Heroes Now?',
@@ -132,10 +135,11 @@
         'It’s just how we talk now — harmless',
         'It lets people avoid real accountability',
         'It’s a genuinely useful way to be self-aware',
-        'It’s complicated — none of these quite fit'
+        'None of these fit'
       ],
       debate: 'Cultural critics have gone both directions on this — some see borrowed narrative language as a healthy, modern form of self-reflection, others argue it lets public figures reframe accountability as a character trait rather than a choice. Both takes appear regularly in pop culture criticism.',
-      sources: []
+      sources: [],
+      relatedClues: [1, 2]
     }
   ];
 
@@ -204,6 +208,8 @@
       playTone(523, 0.14, 'triangle');
       playTone(659, 0.14, 'triangle', 0.1);
       playTone(784, 0.22, 'triangle', 0.2);
+    } else if (kind === 'toggle') {
+      playTone(600, 0.08, 'sine');
     }
   }
 
@@ -254,6 +260,13 @@
   function clueSourceHtml(sources) {
     var links = renderSourceLinks(sources);
     return links ? '<p class="clue-source">Source: ' + links + '</p>' : '';
+  }
+
+  function getClueRecapData(index) {
+    var clue = clues[index];
+    var text = clue.puzzle ? clue.puzzle.reveal : clue.body;
+    var sources = clue.puzzle ? clue.puzzle.sources : clue.sources;
+    return { label: clue.label, title: clue.title, text: text, sources: sources };
   }
 
   // ===========================================================
@@ -410,6 +423,49 @@
       'Case ' + (index + 1) + ' of ' + cases.length;
     document.getElementById('case-title').textContent = c.title;
     document.getElementById('case-prompt').textContent = c.prompt;
+
+    var dotsEl = document.getElementById('case-dots');
+    dotsEl.innerHTML = '';
+    cases.forEach(function (_, i) {
+      var dot = document.createElement('span');
+      dot.className = 'case-dot' + (i === index ? ' current' : '') + (i < index ? ' done' : '');
+      dotsEl.appendChild(dot);
+    });
+
+    var refsEl = document.getElementById('evidence-refs');
+    refsEl.innerHTML = '';
+    var recapPanel = document.getElementById('evidence-recap-panel');
+    recapPanel.classList.add('hidden');
+    recapPanel.innerHTML = '';
+
+    c.relatedClues.forEach(function (clueIndex) {
+      var data = getClueRecapData(clueIndex);
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'evidence-chip';
+      chip.textContent = data.label + ' · ' + data.title;
+      chip.addEventListener('click', function () {
+        var wasActive = chip.classList.contains('active');
+        refsEl.querySelectorAll('.evidence-chip').forEach(function (b) {
+          b.classList.remove('active');
+        });
+
+        if (wasActive) {
+          recapPanel.classList.add('hidden');
+          recapPanel.innerHTML = '';
+          return;
+        }
+
+        chip.classList.add('active');
+        recapPanel.innerHTML =
+          '<h4>' + data.label + ' — ' + data.title + '</h4>' +
+          '<p>' + data.text + '</p>' +
+          clueSourceHtml(data.sources);
+        recapPanel.classList.remove('hidden');
+        playSound('toggle');
+      });
+      refsEl.appendChild(chip);
+    });
 
     var stanceGroup = document.getElementById('stance-group');
     stanceGroup.innerHTML = '';

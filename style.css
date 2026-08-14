@@ -452,7 +452,30 @@ body {
 .case-progress {
   color: var(--text-faint);
   font-size: 0.85rem;
-  margin: 0;
+  margin: 0 0 10px;
+}
+
+.case-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.case-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-soft);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.case-dot.done {
+  background: var(--lavender-dim);
+}
+
+.case-dot.current {
+  background: var(--gold-bright);
+  transform: scale(1.35);
 }
 
 .case-card {
@@ -482,6 +505,70 @@ body {
   color: var(--text-main);
   font-size: 1rem;
   margin: 0 0 22px;
+}
+
+.evidence-refs-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--lavender-dim);
+  margin: 0 0 8px;
+}
+
+.evidence-refs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.evidence-chip {
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: var(--text-main);
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+
+.evidence-chip:hover {
+  border-color: var(--gold);
+  transform: translateY(-1px);
+}
+
+.evidence-chip.active {
+  border-color: var(--gold);
+  background: rgba(212, 175, 55, 0.2);
+  color: var(--gold-bright);
+}
+
+.evidence-recap-panel {
+  background: rgba(201, 182, 255, 0.06);
+  border-left: 3px solid var(--gold);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  animation: recapOpen 0.25s ease;
+}
+
+.evidence-recap-panel h4 {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  color: var(--gold-bright);
+}
+
+.evidence-recap-panel p {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+@keyframes recapOpen {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .stance-group {

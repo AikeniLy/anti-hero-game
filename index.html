@@ -48,16 +48,21 @@
         <header class="verdict-header">
           <p class="verdict-kicker">Case file complete. Now file your verdict.</p>
           <p class="case-progress" id="case-progress">Case 1 of 4</p>
+          <div id="case-dots" class="case-dots" aria-hidden="true"></div>
         </header>
 
         <div class="case-card">
           <h2 id="case-title" class="case-title"></h2>
           <p id="case-prompt" class="case-prompt"></p>
 
+          <p class="evidence-refs-label">Relevant evidence — tap to review:</p>
+          <div id="evidence-refs" class="evidence-refs"></div>
+          <div id="evidence-recap-panel" class="evidence-recap-panel hidden"></div>
+
           <div id="stance-group" class="stance-group" role="group" aria-label="Pick your stance"></div>
 
           <div id="response-area" class="response-area hidden">
-            <label for="verdict-textarea" class="textarea-label">Defend your verdict &mdash; reference at least one clue from the case file.</label>
+            <label for="verdict-textarea" class="textarea-label">Defend your verdict &mdash; reference at least one piece of evidence above (or elsewhere from the case file).</label>
             <textarea id="verdict-textarea" class="verdict-textarea" rows="5" placeholder="Type your reasoning here..."></textarea>
 
             <button id="btn-reveal-debate" class="btn btn-secondary" type="button">Reveal the real debate</button>
