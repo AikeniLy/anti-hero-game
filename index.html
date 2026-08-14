@@ -37,14 +37,15 @@
       <div class="board-wrap">
         <header class="board-header">
           <h2>Evidence Board</h2>
-          <p class="board-instructions">Tap each case file to unlock the evidence inside.</p>
+          <p class="board-instructions">Drag each piece of evidence onto the case file it belongs to. Read carefully — the wording is your only clue. (Can't drag? Tap a card, then tap a folder.)</p>
           <p class="progress-counter"><span id="unlocked-count">0</span>/5 clues unlocked</p>
         </header>
 
-        <div id="evidence-grid" class="evidence-grid"></div>
+        <div id="evidence-tray" class="evidence-tray"></div>
+        <div id="folder-grid" class="folder-grid"></div>
 
         <div class="board-footer">
-          <p id="board-lock-msg" class="lock-msg">Unlock all 5 clues to proceed to the verdict round.</p>
+          <p id="board-lock-msg" class="lock-msg">File all 5 clues to proceed to the verdict round.</p>
           <button id="btn-to-verdict" class="btn btn-primary" type="button" disabled>File Your Verdict</button>
         </div>
       </div>

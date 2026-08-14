@@ -4,101 +4,63 @@
   // ===========================================================
   // Data
   // ===========================================================
-  // Every clue is a guess-first mini-puzzle: a short factual briefing
-  // (gated behind a "continue" click) sets up context, then a guess,
-  // then the full reveal. Every factual claim carries a `sources` array
-  // of {name, url} so citations render inline.
-
-  // Every clue now follows the same read-first loop: a short factual
-  // "briefing" (gated behind a continue click, so it can't be skipped),
-  // then a guess, then the full sourced reveal. This replaces the old
-  // pattern where puzzle tiles let you guess with zero context.
+  // The evidence board is a sorting minigame: each clue has a short,
+  // real `snippet` (paraphrased from the same sourced reveal text, but
+  // without naming which clue it belongs to) that the player drags onto
+  // the matching case-file folder. Getting it right is a reading-
+  // comprehension task, not a blind guess. Every factual claim carries
+  // a `sources` array of {name, url} so citations render inline.
 
   var clues = [
     {
       title: 'The Confession',
       label: 'Clue 01',
-      puzzle: {
-        briefing: '"Anti-Hero" is the lead single from Taylor Swift’s 2022 album Midnights — and one of the most self-critical songs of her career.',
-        question: 'True or false: Taylor Swift wrote and produced this song entirely on her own, with no credited co-writer.',
-        choices: ['True', 'False'],
-        correctIndex: 1,
-        reveal: 'In her own words, Taylor Swift described "Anti-Hero" as a guided tour through the things she dislikes about herself. She wrote and produced the song with Jack Antonoff for her 2022 album Midnights.',
-        sources: [
-          { name: 'Today.com', url: 'https://www.today.com/popculture/music/taylor-swift-anti-hero-song-meaning-midnights-rcna50503' }
-        ]
-      }
+      snippet: 'Written and produced with Jack Antonoff, this track has been described by its own singer as a tour through the parts of herself she likes least.',
+      reveal: 'In her own words, Taylor Swift described "Anti-Hero" as a guided tour through the things she dislikes about herself. She wrote and produced the song with Jack Antonoff for her 2022 album Midnights.',
+      sources: [
+        { name: 'Today.com', url: 'https://www.today.com/popculture/music/taylor-swift-anti-hero-song-meaning-midnights-rcna50503' }
+      ]
     },
     {
       title: 'The Reference',
       label: 'Clue 02',
-      puzzle: {
-        briefing: 'Several lines in "Anti-Hero" are widely believed to echo other pop culture moments — without ever naming the source outright.',
-        prompt: 'In one verse, Swift compares the pressure to seem non-threatening to being a "sexy baby," while describing herself as a "monster" too big to fit in.',
-        question: 'What is this believed to reference?',
-        choices: [
-          'A Real Housewives quote',
-          'An episode of the sitcom 30 Rock',
-          'A tabloid headline about Swift'
-        ],
-        correctIndex: 1,
-        reveal: 'Fans and critics widely connect this line to the 30 Rock episode "TGS Hates Women," featuring a female writer who leans into an exaggerated, over-sexualized persona. Swift has not confirmed this reference herself.',
-        note: 'Want the real lyric? Look it up on Genius.',
-        sources: [
-          { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Anti-Hero_(song)' }
-        ]
-      }
+      snippet: 'One lyric is widely believed to nod to a specific sitcom episode about a female writer leaning into an exaggerated, over-sexualized persona — though the singer has never confirmed it.',
+      reveal: 'Fans and critics widely connect this line to the 30 Rock episode "TGS Hates Women," featuring a female writer who leans into an exaggerated, over-sexualized persona. Swift has not confirmed this reference herself.',
+      note: 'Want the real lyric? Look it up on Genius.',
+      sources: [
+        { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Anti-Hero_(song)' }
+      ]
     },
     {
       title: 'The Bridge',
       label: 'Clue 03',
-      puzzle: {
-        briefing: 'Pop song bridges are often where an artist gets emotionally rawest — and critics have singled out "Anti-Hero"’s bridge as one of its most talked-about moments.',
-        question: 'True or false: the scenario described in the bridge is something that actually happened to Taylor Swift.',
-        choices: ['True', 'False'],
-        correctIndex: 1,
-        reveal: 'The song’s bridge narrates a fictional nightmare — Swift imagines her future daughter-in-law scheming to inherit her fortune after her death. It’s a total fabrication, not a real event, sitting inside a song widely described as one of her most "personal."',
-        sources: [
-          { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Anti-Hero_(song)' }
-        ]
-      }
+      snippet: 'A section of the song invents a scenario where a future in-law schemes for an inheritance after the singer’s death — entirely fictional, despite how personal the rest of the song feels.',
+      reveal: 'The song’s bridge narrates a fictional nightmare — Swift imagines her future daughter-in-law scheming to inherit her fortune after her death. It’s a total fabrication, not a real event, sitting inside a song widely described as one of her most "personal."',
+      sources: [
+        { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Anti-Hero_(song)' }
+      ]
     },
     {
       title: 'The Self-Edit',
       label: 'Clue 04',
-      puzzle: {
-        briefing: 'Major pop stars rarely go back and quietly change a music video after it’s already been released to the public.',
-        prompt: 'Days after "Anti-Hero" premiered, Taylor Swift quietly re-uploaded the music video with one scene altered.',
-        question: 'True or false: this kind of after-release edit is common for a major pop star.',
-        choices: [
-          'True — artists revise released work all the time',
-          'False — this is unusual for an A-list artist'
-        ],
-        correctIndex: 1,
-        reveal: 'In the original music video, a scene showed Swift stepping onto a bathroom scale that displayed the word "FAT" instead of a number, while her alter-ego looked on with disapproval. Days after release, Swift quietly removed this scene from the video on YouTube and Apple Music — an unusual move, since she rarely edits released work in response to public reaction.',
-        sources: [
-          { name: 'BBC News', url: 'https://feeds.bbci.co.uk/news/entertainment-arts-63414044' },
-          { name: 'Rolling Stone', url: 'https://www.rollingstone.com/music/music-news/taylor-swift-anti-hero-video-fat-controversy-1234619554/' },
-          { name: 'NBC News (THINK)', url: 'https://www.nbcnews.com/think/opinion/taylor-swift-should-not-remove-fatphobic-scene-anti-hero-video-rcna54617' },
-          { name: 'Rappler', url: 'https://www.rappler.com/entertainment/celebrities/taylor-swift-anti-hero-controversy-fatphobia-feminist-politics/' }
-        ]
-      }
+      snippet: 'Days after release, a scene involving a bathroom scale and a self-critical word was quietly removed from the official video — unusual, since this artist rarely revises work after backlash.',
+      reveal: 'In the original music video, a scene showed Swift stepping onto a bathroom scale that displayed the word "FAT" instead of a number, while her alter-ego looked on with disapproval. Days after release, Swift quietly removed this scene from the video on YouTube and Apple Music — an unusual move, since she rarely edits released work in response to public reaction.',
+      sources: [
+        { name: 'BBC News', url: 'https://feeds.bbci.co.uk/news/entertainment-arts-63414044' },
+        { name: 'Rolling Stone', url: 'https://www.rollingstone.com/music/music-news/taylor-swift-anti-hero-video-fat-controversy-1234619554/' },
+        { name: 'NBC News (THINK)', url: 'https://www.nbcnews.com/think/opinion/taylor-swift-should-not-remove-fatphobic-scene-anti-hero-video-rcna54617' },
+        { name: 'Rappler', url: 'https://www.rappler.com/entertainment/celebrities/taylor-swift-anti-hero-controversy-fatphobia-feminist-politics/' }
+      ]
     },
     {
       title: 'By the Numbers',
       label: 'Clue 05',
-      puzzle: {
-        briefing: '"Anti-Hero" became one of the most commercially dominant songs of Taylor Swift’s career after its October 2022 release.',
-        prompt: '"Anti-Hero" set several chart records for Taylor Swift after its 2022 release.',
-        question: 'How many consecutive weeks did it spend at No. 1 on the Billboard Hot 100?',
-        choices: ['4 weeks', '6 weeks', '8 weeks'],
-        correctIndex: 2,
-        reveal: '"Anti-Hero" spent 8 weeks atop the Billboard Hot 100 and topped the Billboard Global 200. It made Swift the first artist with a #1 on the Radio Songs chart across three different decades (2000s, 2010s, 2020s), and won 6 MTV Video Music Awards, including Video of the Year.',
-        sources: [
-          { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Anti-Hero_(song)' },
-          { name: 'Rappler', url: 'https://www.rappler.com/entertainment/music/taylor-swift-wins-top-honor-mtv-video-music-awards-2023/' }
-        ]
-      }
+      snippet: 'Eight weeks at #1, a Global 200 chart-topper, a three-decade radio record, and six trophies at one awards show.',
+      reveal: '"Anti-Hero" spent 8 weeks atop the Billboard Hot 100 and topped the Billboard Global 200. It made Swift the first artist with a #1 on the Radio Songs chart across three different decades (2000s, 2010s, 2020s), and won 6 MTV Video Music Awards, including Video of the Year.',
+      sources: [
+        { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Anti-Hero_(song)' },
+        { name: 'Rappler', url: 'https://www.rappler.com/entertainment/music/taylor-swift-wins-top-honor-mtv-video-music-awards-2023/' }
+      ]
     }
   ];
 
@@ -305,81 +267,208 @@
 
   function getClueRecapData(index) {
     var clue = clues[index];
-    return { label: clue.label, title: clue.title, text: clue.puzzle.reveal, sources: clue.puzzle.sources };
+    return { label: clue.label, title: clue.title, text: clue.reveal, sources: clue.sources };
   }
 
   // ===========================================================
-  // Evidence board
+  // Evidence board — "File the Evidence" drag-and-sort minigame
   // ===========================================================
 
-  function buildEvidenceGrid() {
-    var grid = document.getElementById('evidence-grid');
-    grid.innerHTML = '';
+  var selectedCardIndex = null; // clueIndex of the tap-selected card, if any
+  var dragState = null;
 
+  function shuffledIndices(n) {
+    var arr = [];
+    for (var i = 0; i < n; i++) arr.push(i);
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = tmp;
+    }
+    return arr;
+  }
+
+  function buildInvestigationBoard() {
+    var tray = document.getElementById('evidence-tray');
+    var folderGrid = document.getElementById('folder-grid');
+    tray.innerHTML = '';
+    folderGrid.innerHTML = '';
+
+    // Folders stay in fixed Clue 01–05 order; tray cards are shuffled so
+    // position can't be used to cheat the match.
     clues.forEach(function (clue, index) {
-      var tile = document.createElement('div');
-      tile.className = 'evidence-tile';
-      tile.setAttribute('data-index', index);
+      var folder = document.createElement('div');
+      folder.className = 'folder-target';
+      folder.setAttribute('data-index', index);
+      folder.setAttribute('role', 'button');
+      folder.setAttribute('tabindex', '0');
+      folder.setAttribute('aria-label', 'File evidence under ' + clue.label + ': ' + clue.title);
+      folder.innerHTML =
+        '<div class="folder-label">' + clue.label + '</div>' +
+        '<div class="folder-title">' + clue.title + '</div>';
+      folderGrid.appendChild(folder);
 
-      var inner = document.createElement('div');
-      inner.className = 'card-inner';
-
-      var front = document.createElement('div');
-      front.className = 'card-face card-front';
-      front.setAttribute('role', 'button');
-      front.setAttribute('tabindex', '0');
-      front.setAttribute('aria-label', 'Unlock ' + clue.label);
-      front.innerHTML =
-        '<div class="lock-icon">🔒</div>' +
-        '<div class="clue-label">' + clue.label + '</div>' +
-        '<div class="clue-tap">Tap to unlock</div>';
-
-      var back = document.createElement('div');
-      back.className = 'card-face card-back';
-      back.setAttribute('role', 'button');
-      back.setAttribute('tabindex', '0');
-      back.setAttribute('aria-label', 'Reopen ' + clue.label);
-      back.innerHTML =
-        '<div class="clue-back-summary">' +
-        '<div class="check-icon">✅</div>' +
-        '<h3>' + clue.title + '</h3>' +
-        '<p class="clue-reopen">Tap to reopen the file</p>' +
-        '</div>';
-
-      inner.appendChild(front);
-      inner.appendChild(back);
-      tile.appendChild(inner);
-      grid.appendChild(tile);
-
-      function unlockAndOpen() {
-        if (!tile.classList.contains('flipped')) {
-          tile.classList.add('flipped');
-          markUnlocked(index);
-          var rect = front.getBoundingClientRect();
-          burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
-          playSound('unlock');
-        }
-        openClueModal(index);
-      }
-
-      front.addEventListener('click', unlockAndOpen);
-      front.addEventListener('keydown', function (e) {
+      folder.addEventListener('click', function () {
+        if (folder.classList.contains('filed')) return;
+        if (selectedCardIndex == null) return;
+        var cardEl = tray.querySelector('.evidence-card[data-clue-index="' + selectedCardIndex + '"]');
+        attemptMatch(selectedCardIndex, index, cardEl);
+        selectedCardIndex = null;
+      });
+      folder.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          unlockAndOpen();
-        }
-      });
-
-      back.addEventListener('click', function () {
-        openClueModal(index);
-      });
-      back.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          openClueModal(index);
+          folder.click();
         }
       });
     });
+
+    shuffledIndices(clues.length).forEach(function (index) {
+      var clue = clues[index];
+      var card = document.createElement('div');
+      card.className = 'evidence-card';
+      card.setAttribute('data-clue-index', index);
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('aria-label', 'Evidence card, drag or select then choose a case file');
+      card.textContent = clue.snippet;
+      tray.appendChild(card);
+
+      card.addEventListener('pointerdown', function (e) {
+        startDrag(e, card, index);
+      });
+      card.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleCardSelection(index, card);
+        }
+      });
+    });
+
+    document.addEventListener('pointermove', onDragMove);
+    document.addEventListener('pointerup', onDragEnd);
+  }
+
+  function toggleCardSelection(index, cardEl) {
+    if (selectedCardIndex === index) {
+      selectedCardIndex = null;
+      cardEl.classList.remove('selected');
+      return;
+    }
+    document.querySelectorAll('.evidence-card').forEach(function (c) {
+      c.classList.remove('selected');
+    });
+    selectedCardIndex = index;
+    cardEl.classList.add('selected');
+    playSound('toggle');
+  }
+
+  function startDrag(e, cardEl, clueIndex) {
+    if (cardEl.classList.contains('filing')) return;
+    var rect = cardEl.getBoundingClientRect();
+    dragState = {
+      cardEl: cardEl,
+      clueIndex: clueIndex,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+      moved: false
+    };
+    cardEl.setPointerCapture(e.pointerId);
+    cardEl.classList.add('dragging');
+    cardEl.style.position = 'fixed';
+    cardEl.style.left = rect.left + 'px';
+    cardEl.style.top = rect.top + 'px';
+    cardEl.style.width = rect.width + 'px';
+  }
+
+  function onDragMove(e) {
+    if (!dragState) return;
+    dragState.moved = true;
+    dragState.cardEl.style.left = (e.clientX - dragState.offsetX) + 'px';
+    dragState.cardEl.style.top = (e.clientY - dragState.offsetY) + 'px';
+
+    document.querySelectorAll('.folder-target').forEach(function (f) {
+      f.classList.remove('drag-over');
+    });
+    var el = document.elementFromPoint(e.clientX, e.clientY);
+    var folder = el ? el.closest('.folder-target') : null;
+    if (folder && !folder.classList.contains('filed')) {
+      folder.classList.add('drag-over');
+    }
+  }
+
+  function onDragEnd(e) {
+    if (!dragState) return;
+    var cardEl = dragState.cardEl;
+    var clueIndex = dragState.clueIndex;
+    var moved = dragState.moved;
+    cardEl.classList.remove('dragging');
+    document.querySelectorAll('.folder-target').forEach(function (f) {
+      f.classList.remove('drag-over');
+    });
+
+    if (!moved) {
+      // Tap without dragging — treat as select, not a drop attempt.
+      resetCardPosition(cardEl);
+      toggleCardSelection(clueIndex, cardEl);
+      dragState = null;
+      return;
+    }
+
+    var el = document.elementFromPoint(e.clientX, e.clientY);
+    var folder = el ? el.closest('.folder-target') : null;
+
+    if (folder && !folder.classList.contains('filed')) {
+      var folderIndex = parseInt(folder.getAttribute('data-index'), 10);
+      attemptMatch(clueIndex, folderIndex, cardEl);
+    } else {
+      resetCardPosition(cardEl);
+    }
+
+    dragState = null;
+  }
+
+  function resetCardPosition(cardEl) {
+    cardEl.style.position = '';
+    cardEl.style.left = '';
+    cardEl.style.top = '';
+    cardEl.style.width = '';
+  }
+
+  function attemptMatch(clueIndex, folderIndex, cardEl) {
+    if (clueIndex === folderIndex) {
+      fileCorrectly(clueIndex, cardEl);
+    } else {
+      resetCardPosition(cardEl);
+      cardEl.classList.add('shake');
+      playSound('incorrect');
+      setTimeout(function () {
+        cardEl.classList.remove('shake');
+      }, 350);
+    }
+  }
+
+  function fileCorrectly(clueIndex, cardEl) {
+    cardEl.classList.add('filing');
+    var clue = clues[clueIndex];
+    var folder = document.querySelector('.folder-target[data-index="' + clueIndex + '"]');
+    var rect = folder.getBoundingClientRect();
+
+    cardEl.remove();
+    markUnlocked(clueIndex);
+
+    folder.classList.add('filed');
+    folder.innerHTML =
+      '<div class="check-icon">✅</div>' +
+      '<h3>' + clue.title + '</h3>' +
+      '<p class="clue-reopen">Tap to view the file</p>';
+    folder.addEventListener('click', function () {
+      openClueModal(clueIndex);
+    });
+
+    burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    playSound('unlock');
   }
 
   function markUnlocked(index) {
@@ -393,7 +482,16 @@
   // ===========================================================
 
   function openClueModal(index) {
-    renderModalContent(index);
+    var clue = clues[index];
+    var body = document.getElementById('clue-modal-body');
+    var html = '<h3>' + clue.title + '</h3>';
+    html += '<p>' + clue.reveal + '</p>';
+    if (clue.note) {
+      html += '<p class="clue-note">' + clue.note + '</p>';
+    }
+    html += clueSourceHtml(clue.sources);
+    body.innerHTML = html;
+
     document.getElementById('clue-modal').classList.remove('hidden');
     document.body.classList.add('modal-open');
   }
@@ -401,91 +499,6 @@
   function closeClueModal() {
     document.getElementById('clue-modal').classList.add('hidden');
     document.body.classList.remove('modal-open');
-  }
-
-  function renderModalContent(index) {
-    var clue = clues[index];
-    var body = document.getElementById('clue-modal-body');
-    body.innerHTML = buildPuzzleModalHtml(clue);
-    wireModalPuzzleChoices(index);
-  }
-
-  function buildPuzzleModalHtml(clue) {
-    var p = clue.puzzle;
-    var html = '<h3>' + clue.title + '</h3>';
-
-    if (!p.briefingAcknowledged) {
-      html += '<p class="modal-briefing-label">Case notes — read before you guess:</p>';
-      html += '<p>' + p.briefing + '</p>';
-      html += '<button type="button" class="btn btn-primary modal-continue-btn" id="btn-briefing-continue">I’ve read it — ask me</button>';
-      return html;
-    }
-
-    html += '<p class="modal-briefing-recap">' + p.briefing + '</p>';
-
-    if (p.prompt) {
-      html += '<p>' + p.prompt + '</p>';
-    }
-
-    if (p.answeredIndex == null) {
-      html += '<p class="modal-question">' + p.question + '</p>';
-      html += '<div class="puzzle-choices">';
-      p.choices.forEach(function (choice, i) {
-        html += '<button type="button" class="puzzle-choice-btn" data-choice="' + i + '">' +
-          String.fromCharCode(97 + i) + ') ' + choice + '</button>';
-      });
-      html += '</div>';
-    } else {
-      html += '<div class="puzzle-choices">';
-      p.choices.forEach(function (choice, i) {
-        var cls = 'puzzle-choice-btn';
-        if (i === p.correctIndex) {
-          cls += ' correct';
-        } else if (i === p.answeredIndex) {
-          cls += ' incorrect';
-        }
-        html += '<button type="button" class="' + cls + '" disabled>' +
-          String.fromCharCode(97 + i) + ') ' + choice + '</button>';
-      });
-      html += '</div>';
-      html += '<p>' + p.reveal + '</p>';
-      if (p.note) {
-        html += '<p class="clue-note">' + p.note + '</p>';
-      }
-      html += clueSourceHtml(p.sources);
-    }
-
-    return html;
-  }
-
-  function wireModalPuzzleChoices(index) {
-    var clue = clues[index];
-    var p = clue.puzzle;
-    var body = document.getElementById('clue-modal-body');
-
-    if (!p.briefingAcknowledged) {
-      var continueBtn = document.getElementById('btn-briefing-continue');
-      if (continueBtn) {
-        continueBtn.addEventListener('click', function () {
-          p.briefingAcknowledged = true;
-          playSound('toggle');
-          renderModalContent(index);
-        });
-      }
-      return;
-    }
-
-    if (p.answeredIndex != null) return;
-
-    var buttons = body.querySelectorAll('.puzzle-choice-btn');
-    buttons.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var chosen = parseInt(btn.getAttribute('data-choice'), 10);
-        p.answeredIndex = chosen;
-        playSound(chosen === p.correctIndex ? 'correct' : 'incorrect');
-        renderModalContent(index);
-      });
-    });
   }
 
   function updateCounter() {
@@ -660,7 +673,7 @@
   // ===========================================================
 
   function init() {
-    buildEvidenceGrid();
+    buildInvestigationBoard();
 
     document.getElementById('btn-start').addEventListener('click', function () {
       showScreen('screen-board');
