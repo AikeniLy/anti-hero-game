@@ -160,7 +160,7 @@
   // State
   // ===========================================================
 
-  var blasterRoundIndex = 0;
+  var currentClueIndex = 0;
   var blasterState = null;
   var blasterRafId = null;
   var blasterCorrectCount = 0;
@@ -299,26 +299,32 @@
   }
 
   // ===========================================================
-  // Case Briefing
+  // Case Briefing — shown one clue at a time, immediately before that
+  // clue's Blaster round, instead of all five up front.
   // ===========================================================
 
-  function buildBriefing() {
+  function showClueBriefing(index) {
+    var clue = clues[index];
+
+    document.getElementById('briefing-progress').textContent =
+      'Clue ' + (index + 1) + ' of ' + clues.length;
+
     var list = document.getElementById('briefing-list');
     list.innerHTML = '';
 
-    clues.forEach(function (clue) {
-      var card = document.createElement('div');
-      card.className = 'briefing-card';
-      var html = '<div class="briefing-label">' + clue.label + '</div>';
-      html += '<h3>' + clue.title + '</h3>';
-      html += '<p>' + clue.reveal + '</p>';
-      if (clue.note) {
-        html += '<p class="clue-note">' + clue.note + '</p>';
-      }
-      html += clueSourceHtml(clue.sources);
-      card.innerHTML = html;
-      list.appendChild(card);
-    });
+    var card = document.createElement('div');
+    card.className = 'briefing-card';
+    var html = '<div class="briefing-label">' + clue.label + '</div>';
+    html += '<h3>' + clue.title + '</h3>';
+    html += '<p>' + clue.reveal + '</p>';
+    if (clue.note) {
+      html += '<p class="clue-note">' + clue.note + '</p>';
+    }
+    html += clueSourceHtml(clue.sources);
+    card.innerHTML = html;
+    list.appendChild(card);
+
+    document.getElementById('btn-start-blaster').textContent = 'Start Round ' + (index + 1);
   }
 
   // ===========================================================
@@ -729,7 +735,7 @@
     }
 
     var nextBtn = document.getElementById('btn-blaster-next');
-    nextBtn.textContent = isLastRound ? 'Proceed to Verdict' : 'Next Round';
+    nextBtn.textContent = isLastRound ? 'Proceed to Verdict' : 'Read Clue ' + (clueIndex + 2);
 
     document.getElementById('blaster-reveal').classList.remove('hidden');
   }
@@ -885,19 +891,30 @@
   // ===========================================================
 
   function init() {
-    buildBriefing();
     wireBlasterControls();
 
     document.getElementById('btn-start').addEventListener('click', function () {
+      currentClueIndex = 0;
+      showClueBriefing(0);
       showScreen('screen-briefing');
     });
 
+    // Read clue N, then play round N — every clue's briefing button leads
+    // into that same clue's Blaster round. The full how-to-play intro only
+    // shows once, before round 1; later rounds skip straight to the arena.
     document.getElementById('btn-start-blaster').addEventListener('click', function () {
       showScreen('screen-blaster');
+      if (currentClueIndex === 0) {
+        document.getElementById('blaster-intro').classList.remove('hidden');
+        document.getElementById('blaster-play-wrap').classList.add('hidden');
+      } else {
+        document.getElementById('blaster-intro').classList.add('hidden');
+        document.getElementById('blaster-play-wrap').classList.remove('hidden');
+        startBlasterRound(currentClueIndex);
+      }
     });
 
     document.getElementById('btn-blaster-start-round').addEventListener('click', function () {
-      blasterRoundIndex = 0;
       blasterCorrectCount = 0;
       blasterRoundsAnswered = 0;
       updateBlasterScore();
@@ -909,13 +926,14 @@
     document.getElementById('btn-blaster-fire').addEventListener('click', fireBolt);
 
     document.getElementById('btn-blaster-next').addEventListener('click', function () {
-      blasterRoundIndex++;
-      if (blasterRoundIndex >= clues.length) {
+      currentClueIndex++;
+      if (currentClueIndex >= clues.length) {
         currentCase = 0;
         renderCase(currentCase);
         showScreen('screen-verdict');
       } else {
-        startBlasterRound(blasterRoundIndex);
+        showClueBriefing(currentClueIndex);
+        showScreen('screen-briefing');
       }
     });
 

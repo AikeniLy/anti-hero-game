@@ -253,6 +253,14 @@ body {
   margin: 0 0 8px;
 }
 
+.briefing-progress {
+  color: var(--text-faint);
+  font-size: 0.85rem;
+  font-family: "Courier New", monospace;
+  letter-spacing: 0.05em;
+  margin: 0 0 8px;
+}
+
 .briefing-instructions {
   color: var(--text-dim);
   margin: 0;
