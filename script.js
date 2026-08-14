@@ -161,6 +161,8 @@
   // ===========================================================
 
   var blasterRoundIndex = 0;
+  var blasterState = null;
+  var blasterRafId = null;
   var currentCase = 0;
   var soundEnabled = true;
   var audioCtx = null;
@@ -317,71 +319,233 @@
 
   // ===========================================================
   // Evidence Blaster — retro arcade recall round
+  // Real ship + projectile physics: drag to steer, ship auto-fires,
+  // bolts travel up the play area and collide with drifting targets.
   // ===========================================================
 
-  function startBlasterRound(index) {
-    var clue = clues[index];
+  function stopBlasterLoop() {
+    if (blasterRafId) {
+      cancelAnimationFrame(blasterRafId);
+      blasterRafId = null;
+    }
+    blasterState = null;
+  }
 
+  function startBlasterRound(index) {
+    stopBlasterLoop();
+
+    var clue = clues[index];
     document.getElementById('blaster-round').textContent = 'Round ' + (index + 1) + ' of ' + clues.length;
     document.getElementById('blaster-question').textContent = clue.question;
     document.getElementById('blaster-reveal').classList.add('hidden');
 
-    var targetsEl = document.getElementById('blaster-targets');
-    targetsEl.classList.remove('paused');
-    targetsEl.innerHTML = '';
+    var playArea = document.getElementById('blaster-play-area');
+    var targetsLayer = document.getElementById('blaster-targets-layer');
+    var boltsLayer = document.getElementById('blaster-bolts-layer');
+    var shipEl = document.getElementById('blaster-ship');
+
+    targetsLayer.innerHTML = '';
+    boltsLayer.innerHTML = '';
+    shipEl.classList.remove('hidden');
+
+    var rect = playArea.getBoundingClientRect();
+    var areaW = rect.width;
+    var areaH = rect.height;
 
     var order = shuffledIndices(clue.choices.length);
     var slotCount = Math.max(1, clue.choices.length - 1);
+    var targets = [];
 
     order.forEach(function (choiceIdx, slot) {
-      var target = document.createElement('button');
-      target.type = 'button';
-      target.className = 'blaster-target';
-      target.textContent = clue.choices[choiceIdx];
-      target.setAttribute('data-choice-index', choiceIdx);
-      target.style.top = (8 + slot * (72 / slotCount)) + '%';
-      target.style.left = (6 + Math.random() * 12) + '%';
-      target.style.setProperty('--dx', (130 + Math.random() * 110) + 'px');
-      target.style.animationDuration = (2.3 + Math.random() * 2) + 's';
-      target.style.animationDelay = (-Math.random() * 3) + 's';
+      var el = document.createElement('div');
+      el.className = 'blaster-target';
+      el.textContent = clue.choices[choiceIdx];
+      targetsLayer.appendChild(el);
 
-      target.addEventListener('click', function () {
-        resolveBlasterShot(index, choiceIdx, target);
+      var tw = el.offsetWidth || 90;
+      var th = el.offsetHeight || 34;
+      var laneH = areaH * 0.55;
+      var y = 10 + slot * (laneH / slotCount);
+      var x = Math.random() * Math.max(10, areaW - tw - 10);
+      var speed = 35 + Math.random() * 30;
+      var dir = Math.random() < 0.5 ? -1 : 1;
+
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+
+      targets.push({ choiceIdx: choiceIdx, el: el, x: x, y: y, w: tw, h: th, vx: speed * dir, alive: true });
+    });
+
+    var shipW = shipEl.offsetWidth || 28;
+
+    blasterState = {
+      clueIndex: index,
+      targets: targets,
+      bolts: [],
+      shipX: areaW / 2 - shipW / 2,
+      shipW: shipW,
+      areaW: areaW,
+      areaH: areaH,
+      resolved: false,
+      fireAccumulator: 0,
+      lastTime: null,
+      boltsLayer: boltsLayer,
+      shipEl: shipEl
+    };
+
+    shipEl.style.left = blasterState.shipX + 'px';
+
+    blasterRafId = requestAnimationFrame(blasterTick);
+  }
+
+  function blasterTick(t) {
+    if (!blasterState) return;
+    var s = blasterState;
+    if (s.lastTime == null) s.lastTime = t;
+    var dt = Math.min(0.05, (t - s.lastTime) / 1000);
+    s.lastTime = t;
+
+    if (!s.resolved) {
+      s.targets.forEach(function (tg) {
+        if (!tg.alive) return;
+        tg.x += tg.vx * dt;
+        if (tg.x <= 0) {
+          tg.x = 0;
+          tg.vx = Math.abs(tg.vx);
+        } else if (tg.x + tg.w >= s.areaW) {
+          tg.x = s.areaW - tg.w;
+          tg.vx = -Math.abs(tg.vx);
+        }
+        tg.el.style.left = tg.x + 'px';
       });
 
-      targetsEl.appendChild(target);
+      s.fireAccumulator += dt;
+      if (s.fireAccumulator >= 0.45) {
+        s.fireAccumulator = 0;
+        spawnBolt(s);
+      }
+
+      for (var i = s.bolts.length - 1; i >= 0; i--) {
+        var b = s.bolts[i];
+        b.y -= 220 * dt;
+        b.el.style.top = b.y + 'px';
+
+        if (b.y < -20) {
+          b.el.remove();
+          s.bolts.splice(i, 1);
+          continue;
+        }
+
+        var hitTarget = null;
+        for (var j = 0; j < s.targets.length; j++) {
+          var tg2 = s.targets[j];
+          if (!tg2.alive) continue;
+          if (b.x >= tg2.x - 6 && b.x <= tg2.x + tg2.w + 6 && b.y <= tg2.y + tg2.h && b.y >= tg2.y - 6) {
+            hitTarget = tg2;
+            break;
+          }
+        }
+
+        if (hitTarget) {
+          b.el.remove();
+          s.bolts.splice(i, 1);
+          resolveBlasterHit(hitTarget);
+          break;
+        }
+      }
+    }
+
+    blasterRafId = requestAnimationFrame(blasterTick);
+  }
+
+  function spawnBolt(s) {
+    var el = document.createElement('div');
+    el.className = 'blaster-bolt';
+    s.boltsLayer.appendChild(el);
+    var bx = s.shipX + s.shipW / 2 - 2;
+    var by = s.areaH - 34;
+    el.style.left = bx + 'px';
+    el.style.top = by + 'px';
+    s.bolts.push({ el: el, x: bx, y: by });
+    playSound('shoot');
+  }
+
+  function wireBlasterControls() {
+    var playArea = document.getElementById('blaster-play-area');
+    var dragging = false;
+
+    function moveShipTo(clientX) {
+      if (!blasterState) return;
+      var rect = playArea.getBoundingClientRect();
+      var x = clientX - rect.left - blasterState.shipW / 2;
+      x = Math.max(0, Math.min(blasterState.areaW - blasterState.shipW, x));
+      blasterState.shipX = x;
+      blasterState.shipEl.style.left = x + 'px';
+    }
+
+    playArea.addEventListener('pointerdown', function (e) {
+      dragging = true;
+      playArea.setPointerCapture(e.pointerId);
+      moveShipTo(e.clientX);
+    });
+    playArea.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      moveShipTo(e.clientX);
+    });
+    playArea.addEventListener('pointerup', function () {
+      dragging = false;
+    });
+    playArea.addEventListener('pointercancel', function () {
+      dragging = false;
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (!blasterState) return;
+      if (e.key === 'ArrowLeft') {
+        blasterState.shipX = Math.max(0, blasterState.shipX - 24);
+        blasterState.shipEl.style.left = blasterState.shipX + 'px';
+      } else if (e.key === 'ArrowRight') {
+        blasterState.shipX = Math.min(blasterState.areaW - blasterState.shipW, blasterState.shipX + 24);
+        blasterState.shipEl.style.left = blasterState.shipX + 'px';
+      }
     });
   }
 
-  function resolveBlasterShot(clueIndex, chosenIdx, clickedEl) {
-    var clue = clues[clueIndex];
-    var isCorrect = chosenIdx === clue.correctIndex;
-    var targetsEl = document.getElementById('blaster-targets');
+  function resolveBlasterHit(target) {
+    var s = blasterState;
+    if (!s || s.resolved) return;
+    s.resolved = true;
 
-    targetsEl.classList.add('paused');
-    var allTargets = targetsEl.querySelectorAll('.blaster-target');
-    allTargets.forEach(function (el) {
-      el.style.pointerEvents = 'none';
-      var elChoiceIdx = parseInt(el.getAttribute('data-choice-index'), 10);
-      if (elChoiceIdx === clue.correctIndex) {
-        el.classList.add('hit-correct');
-      } else if (el === clickedEl) {
-        el.classList.add('hit-wrong');
+    var clueIndex = s.clueIndex;
+    var clue = clues[clueIndex];
+    var isCorrect = target.choiceIdx === clue.correctIndex;
+
+    s.targets.forEach(function (tg) {
+      if (tg === target) {
+        tg.el.classList.add(isCorrect ? 'hit-correct' : 'hit-wrong');
+      } else if (tg.choiceIdx === clue.correctIndex) {
+        tg.el.classList.add('hit-correct');
       } else {
-        el.classList.add('faded');
+        tg.el.classList.add('faded');
       }
     });
 
-    playSound('shoot');
+    s.bolts.forEach(function (b) {
+      b.el.remove();
+    });
+    s.bolts = [];
+
+    playSound(isCorrect ? 'explode-good' : 'explode-bad');
+    if (isCorrect) {
+      var rect = target.el.getBoundingClientRect();
+      burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    }
+
+    stopBlasterLoop();
 
     setTimeout(function () {
-      playSound(isCorrect ? 'explode-good' : 'explode-bad');
-      if (isCorrect) {
-        var rect = clickedEl.getBoundingClientRect();
-        burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
-      }
       showBlasterReveal(clueIndex);
-    }, 150);
+    }, 260);
   }
 
   function showBlasterReveal(clueIndex) {
@@ -559,6 +723,7 @@
 
   function init() {
     buildBriefing();
+    wireBlasterControls();
 
     document.getElementById('btn-start').addEventListener('click', function () {
       showScreen('screen-briefing');

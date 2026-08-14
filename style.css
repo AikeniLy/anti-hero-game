@@ -341,14 +341,30 @@ body {
   color: var(--gold-bright);
   font-weight: 700;
   font-size: 1.02rem;
-  margin: 0 0 24px;
+  margin: 0 0 8px;
   font-family: "Courier New", monospace;
   letter-spacing: 0.01em;
 }
 
-.blaster-targets {
+.blaster-hint {
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 0.78rem;
+  margin: 0 0 14px;
+}
+
+.blaster-play-area {
   position: relative;
-  height: 210px;
+  height: 260px;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.blaster-targets-layer,
+.blaster-bolts-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .blaster-target {
@@ -360,23 +376,9 @@ body {
   background: linear-gradient(155deg, #4a3a6b, #2a2050);
   border: 2px solid var(--lavender);
   border-radius: 8px;
-  padding: 10px 14px;
-  cursor: pointer;
+  padding: 8px 12px;
   white-space: nowrap;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
-  animation-name: driftX;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  animation-direction: alternate;
-}
-
-@keyframes driftX {
-  from { transform: translateX(0); }
-  to   { transform: translateX(var(--dx, 160px)); }
-}
-
-.blaster-targets.paused .blaster-target {
-  animation-play-state: paused;
 }
 
 .blaster-target.hit-correct {
@@ -405,6 +407,31 @@ body {
 @keyframes targetExplodeBad {
   0%   { transform: scale(1) rotate(0deg); }
   100% { transform: scale(0.2) rotate(25deg); opacity: 0; }
+}
+
+.blaster-bolt {
+  position: absolute;
+  width: 4px;
+  height: 14px;
+  background: var(--lavender);
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(201, 182, 255, 0.85);
+}
+
+.blaster-ship {
+  position: absolute;
+  bottom: 6px;
+  width: 0;
+  height: 0;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-bottom: 22px solid var(--gold-bright);
+  filter: drop-shadow(0 0 6px rgba(240, 207, 106, 0.65));
+  pointer-events: none;
+}
+
+.blaster-ship.hidden {
+  display: none;
 }
 
 .blaster-reveal {
