@@ -355,16 +355,40 @@ body {
 
 .blaster-play-area {
   position: relative;
-  height: 260px;
+  height: 380px;
   touch-action: none;
   cursor: crosshair;
 }
 
 .blaster-targets-layer,
+.blaster-shields-layer,
 .blaster-bolts-layer {
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+
+.blaster-shield {
+  position: absolute;
+  display: flex;
+  gap: 3px;
+  padding: 4px 6px;
+  background: rgba(155, 138, 196, 0.18);
+  border: 2px solid var(--lavender-dim);
+  border-radius: 4px;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.blaster-shield span {
+  width: 8px;
+  height: 8px;
+  background: var(--lavender-dim);
+  border-radius: 1px;
+}
+
+.blaster-shield.shield-broken {
+  opacity: 0;
+  transform: scale(0.6) rotate(8deg);
 }
 
 .blaster-target {
@@ -432,6 +456,34 @@ body {
 
 .blaster-ship.hidden {
   display: none;
+}
+
+.blaster-fire-btn {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  font-family: "Courier New", monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 14px;
+  border-radius: 10px;
+  border: 2px solid var(--gold);
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+  color: #221a05;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.25);
+  transition: transform 0.1s ease, opacity 0.15s ease;
+}
+
+.blaster-fire-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.blaster-fire-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .blaster-reveal {

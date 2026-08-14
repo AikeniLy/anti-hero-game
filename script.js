@@ -219,6 +219,8 @@
       playTone(990, 0.12, 'square', 0.06);
     } else if (kind === 'explode-bad') {
       playTone(180, 0.16, 'square');
+    } else if (kind === 'block') {
+      playTone(400, 0.07, 'square');
     } else if (kind === 'finale') {
       playTone(523, 0.14, 'triangle');
       playTone(659, 0.14, 'triangle', 0.1);
@@ -341,10 +343,12 @@
 
     var playArea = document.getElementById('blaster-play-area');
     var targetsLayer = document.getElementById('blaster-targets-layer');
+    var shieldsLayer = document.getElementById('blaster-shields-layer');
     var boltsLayer = document.getElementById('blaster-bolts-layer');
     var shipEl = document.getElementById('blaster-ship');
 
     targetsLayer.innerHTML = '';
+    shieldsLayer.innerHTML = '';
     boltsLayer.innerHTML = '';
     shipEl.classList.remove('hidden');
 
@@ -352,28 +356,54 @@
     var areaW = rect.width;
     var areaH = rect.height;
 
+    // Each answer gets its own column: a target drifting near the top,
+    // and a shield "obstacle" guarding it lower down that must be
+    // destroyed before a shot can reach the target itself.
     var order = shuffledIndices(clue.choices.length);
-    var slotCount = Math.max(1, clue.choices.length - 1);
+    var columnCount = order.length;
+    var columnWidth = areaW / columnCount;
     var targets = [];
+    var shields = [];
 
-    order.forEach(function (choiceIdx, slot) {
+    order.forEach(function (choiceIdx, col) {
+      var colMin = col * columnWidth + 10;
+      var colMax = (col + 1) * columnWidth - 10;
+
       var el = document.createElement('div');
       el.className = 'blaster-target';
       el.textContent = clue.choices[choiceIdx];
       targetsLayer.appendChild(el);
 
-      var tw = el.offsetWidth || 90;
+      var tw = Math.min(el.offsetWidth || 90, columnWidth - 24);
       var th = el.offsetHeight || 34;
-      var laneH = areaH * 0.55;
-      var y = 10 + slot * (laneH / slotCount);
-      var x = Math.random() * Math.max(10, areaW - tw - 10);
-      var speed = 35 + Math.random() * 30;
+      var xMin = colMin;
+      var xMax = Math.max(xMin + 4, colMax - tw);
+      var x = xMin + Math.random() * (xMax - xMin);
+      var y = 8 + Math.random() * (areaH * 0.16);
+      var speed = 14 + Math.random() * 12;
       var dir = Math.random() < 0.5 ? -1 : 1;
 
       el.style.left = x + 'px';
       el.style.top = y + 'px';
 
-      targets.push({ choiceIdx: choiceIdx, el: el, x: x, y: y, w: tw, h: th, vx: speed * dir, alive: true });
+      targets.push({
+        choiceIdx: choiceIdx, el: el, x: x, y: y, w: tw, h: th,
+        vx: speed * dir, xMin: xMin, xMax: xMax, column: col, alive: true
+      });
+
+      var shieldEl = document.createElement('div');
+      shieldEl.className = 'blaster-shield';
+      shieldEl.innerHTML = '<span></span><span></span><span></span>';
+      shieldsLayer.appendChild(shieldEl);
+
+      var sw = shieldEl.offsetWidth || 64;
+      var sh = shieldEl.offsetHeight || 16;
+      var sx = col * columnWidth + columnWidth / 2 - sw / 2;
+      var sy = areaH * 0.62;
+      shieldEl.style.left = sx + 'px';
+      shieldEl.style.top = sy + 'px';
+
+      shields.push({ el: shieldEl, x: sx, y: sy, w: sw, h: sh, hp: 1, alive: true, column: col });
     });
 
     var shipW = shipEl.offsetWidth || 28;
@@ -381,13 +411,14 @@
     blasterState = {
       clueIndex: index,
       targets: targets,
+      shields: shields,
+      columnWidth: columnWidth,
       bolts: [],
       shipX: areaW / 2 - shipW / 2,
       shipW: shipW,
       areaW: areaW,
       areaH: areaH,
       resolved: false,
-      fireAccumulator: 0,
       lastTime: null,
       boltsLayer: boltsLayer,
       shipEl: shipEl
@@ -395,6 +426,7 @@
 
     shipEl.style.left = blasterState.shipX + 'px';
 
+    updateFireButtonState();
     blasterRafId = requestAnimationFrame(blasterTick);
   }
 
@@ -409,48 +441,56 @@
       s.targets.forEach(function (tg) {
         if (!tg.alive) return;
         tg.x += tg.vx * dt;
-        if (tg.x <= 0) {
-          tg.x = 0;
+        if (tg.x <= tg.xMin) {
+          tg.x = tg.xMin;
           tg.vx = Math.abs(tg.vx);
-        } else if (tg.x + tg.w >= s.areaW) {
-          tg.x = s.areaW - tg.w;
+        } else if (tg.x >= tg.xMax) {
+          tg.x = tg.xMax;
           tg.vx = -Math.abs(tg.vx);
         }
         tg.el.style.left = tg.x + 'px';
       });
 
-      s.fireAccumulator += dt;
-      if (s.fireAccumulator >= 0.45) {
-        s.fireAccumulator = 0;
-        spawnBolt(s);
-      }
-
       for (var i = s.bolts.length - 1; i >= 0; i--) {
         var b = s.bolts[i];
-        b.y -= 220 * dt;
+        b.y -= 130 * dt;
         b.el.style.top = b.y + 'px';
 
         if (b.y < -20) {
           b.el.remove();
           s.bolts.splice(i, 1);
+          updateFireButtonState();
           continue;
         }
 
-        var hitTarget = null;
-        for (var j = 0; j < s.targets.length; j++) {
-          var tg2 = s.targets[j];
-          if (!tg2.alive) continue;
-          if (b.x >= tg2.x - 6 && b.x <= tg2.x + tg2.w + 6 && b.y <= tg2.y + tg2.h && b.y >= tg2.y - 6) {
-            hitTarget = tg2;
-            break;
+        var shield = s.shields[b.column];
+        if (shield && shield.alive &&
+            b.y <= shield.y + shield.h && b.y >= shield.y - 8 &&
+            b.x >= shield.x - 6 && b.x <= shield.x + shield.w + 6) {
+          shield.hp -= 1;
+          if (shield.hp <= 0) {
+            shield.alive = false;
+            shield.el.classList.add('shield-broken');
+            playSound('explode-bad');
+          } else {
+            playSound('block');
           }
-        }
-
-        if (hitTarget) {
           b.el.remove();
           s.bolts.splice(i, 1);
-          resolveBlasterHit(hitTarget);
-          break;
+          updateFireButtonState();
+          continue;
+        }
+
+        if (!shield || !shield.alive) {
+          var target = s.targets[b.column];
+          if (target && target.alive &&
+              b.x >= target.x - 6 && b.x <= target.x + target.w + 6 &&
+              b.y <= target.y + target.h && b.y >= target.y - 6) {
+            b.el.remove();
+            s.bolts.splice(i, 1);
+            resolveBlasterHit(target);
+            break;
+          }
         }
       }
     }
@@ -458,7 +498,13 @@
     blasterRafId = requestAnimationFrame(blasterTick);
   }
 
-  function spawnBolt(s) {
+  function fireBolt() {
+    var s = blasterState;
+    if (!s || s.resolved) return;
+    if (s.bolts.length > 0) return; // one bolt in flight at a time
+
+    var column = Math.max(0, Math.min(s.targets.length - 1, Math.floor((s.shipX + s.shipW / 2) / s.columnWidth)));
+
     var el = document.createElement('div');
     el.className = 'blaster-bolt';
     s.boltsLayer.appendChild(el);
@@ -466,8 +512,17 @@
     var by = s.areaH - 34;
     el.style.left = bx + 'px';
     el.style.top = by + 'px';
-    s.bolts.push({ el: el, x: bx, y: by });
+    s.bolts.push({ el: el, x: bx, y: by, column: column });
+
     playSound('shoot');
+    updateFireButtonState();
+  }
+
+  function updateFireButtonState() {
+    var btn = document.getElementById('btn-blaster-fire');
+    if (!btn) return;
+    var canFire = !!(blasterState && !blasterState.resolved && blasterState.bolts.length === 0);
+    btn.disabled = !canFire;
   }
 
   function wireBlasterControls() {
@@ -507,6 +562,9 @@
       } else if (e.key === 'ArrowRight') {
         blasterState.shipX = Math.min(blasterState.areaW - blasterState.shipW, blasterState.shipX + 24);
         blasterState.shipEl.style.left = blasterState.shipX + 'px';
+      } else if (e.key === ' ') {
+        e.preventDefault();
+        fireBolt();
       }
     });
   }
@@ -534,6 +592,7 @@
       b.el.remove();
     });
     s.bolts = [];
+    updateFireButtonState();
 
     playSound(isCorrect ? 'explode-good' : 'explode-bad');
     if (isCorrect) {
@@ -734,6 +793,8 @@
       showScreen('screen-blaster');
       startBlasterRound(0);
     });
+
+    document.getElementById('btn-blaster-fire').addEventListener('click', fireBolt);
 
     document.getElementById('btn-blaster-next').addEventListener('click', function () {
       blasterRoundIndex++;
