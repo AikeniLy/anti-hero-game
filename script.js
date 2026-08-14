@@ -95,7 +95,13 @@
       sources: [
         { name: 'The Ringer', url: 'https://www.theringer.com/2022/10/25/music/midnights-taylor-swift-review' }
       ],
-      relatedClues: [0, 4]
+      relatedClues: [0, 4],
+      crossExam: [
+        'Counterpoint: other critics have pointed out that confessional openness has become a reliable commercial strategy across pop music — genuine feeling and smart marketing aren’t mutually exclusive.',
+        'Counterpoint: other critics have praised the song’s bluntness as unusually candid for an artist at Swift’s level of fame. Cynicism about the motive doesn’t erase that the content itself reads as unusually direct.',
+        'If it’s really both, which one wins when they conflict? If a specific line felt calculated rather than raw, would that change how "vulnerable" the song feels to you?',
+        'Most published criticism lands on one of these three readings, often more than one at once. What’s actually missing from these options for you?'
+      ]
     },
     {
       title: 'Fiction Inside a “True” Song',
@@ -110,7 +116,13 @@
       sources: [
         { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Anti-Hero_(song)' }
       ],
-      relatedClues: [2, 0]
+      relatedClues: [2, 0],
+      crossExam: [
+        'Most published criticism actually agrees with you here — outlets have read the invented bridge as dramatizing real anxiety, not undercutting it. So: is there a version of this bridge that WOULD cross a line for you?',
+        'Counterpoint: most published criticism disagrees with you — outlets have generally read the invented bridge as a device that dramatizes real anxiety, not a contradiction of the song’s honesty. Are critics being too generous, or are you holding the song to a stricter standard than they are?',
+        'If the line really doesn’t matter, would you still call a song "confessional" if the whole thing were invented? Where’s your actual cutoff?',
+        'The published critical read leans toward "fiction can still be true" — but that’s not the only lens available. What’s your alternative?'
+      ]
     },
     {
       title: 'The Self-Edit',
@@ -126,7 +138,13 @@
         { name: 'NBC News (THINK)', url: 'https://www.nbcnews.com/think/opinion/taylor-swift-should-not-remove-fatphobic-scene-anti-hero-video-rcna54617' },
         { name: 'Rappler', url: 'https://www.rappler.com/entertainment/celebrities/taylor-swift-anti-hero-controversy-fatphobia-feminist-politics/' }
       ],
-      relatedClues: [3]
+      relatedClues: [3],
+      crossExam: [
+        'Counterpoint: some coverage argued the edit actually undercut the honesty of the original scene — that removing it softened something real, rather than fixing a mistake.',
+        'Counterpoint: other coverage framed the same edit as a thoughtful response to legitimate criticism, not a cave to pressure.',
+        'So what’s your actual rule — is it about who’s affected, how personal the content is, or something else? Try to name it in one sentence.',
+        'Coverage at the time genuinely split between these two camps, with no consensus. Where do you land, even roughly?'
+      ]
     },
     {
       title: 'Are We All Anti-Heroes Now?',
@@ -139,7 +157,13 @@
       ],
       debate: 'Cultural critics have gone both directions on this — some see borrowed narrative language as a healthy, modern form of self-reflection, others argue it lets public figures reframe accountability as a character trait rather than a choice. Both takes appear regularly in pop culture criticism.',
       sources: [],
-      relatedClues: [1, 2]
+      relatedClues: [1, 2],
+      crossExam: [
+        'Counterpoint: other critics argue this kind of language lets public figures reframe accountability as a character trait rather than an actual choice they’re responsible for.',
+        'Counterpoint: other critics see this same habit as a healthy, modern form of self-reflection — not an excuse, but a tool for actually processing mistakes.',
+        'Counterpoint: a skeptic would say calling it "self-awareness" still lets someone dodge the harder, less flattering word for the same behavior: a choice.',
+        'Cultural critics genuinely split on this one — some call it healthy self-reflection, others call it a dodge. Which risk worries you more?'
+      ]
     }
   ];
 
@@ -476,11 +500,12 @@
       btn.textContent = stanceText;
       btn.setAttribute('data-stance-index', i);
       btn.addEventListener('click', function () {
-        selectStance(i, stanceGroup);
+        selectStance(i, stanceGroup, c);
       });
       stanceGroup.appendChild(btn);
     });
 
+    document.getElementById('cross-exam').classList.add('hidden');
     document.getElementById('response-area').classList.add('hidden');
     document.getElementById('verdict-textarea').value = '';
     document.getElementById('debate-reveal').classList.add('hidden');
@@ -501,7 +526,7 @@
     card.classList.add('case-enter');
   }
 
-  function selectStance(i, stanceGroup) {
+  function selectStance(i, stanceGroup, c) {
     var buttons = stanceGroup.querySelectorAll('.stance-card');
     buttons.forEach(function (b, idx) {
       if (idx === i) {
@@ -510,7 +535,32 @@
         b.classList.remove('selected');
       }
     });
-    document.getElementById('response-area').classList.remove('hidden');
+
+    var crossExam = document.getElementById('cross-exam');
+    var crossExamText = document.getElementById('cross-exam-text');
+    var standByBtn = document.getElementById('btn-stand-by');
+    var changedBtn = document.getElementById('btn-changed-mind');
+    var responseArea = document.getElementById('response-area');
+
+    crossExamText.textContent = c.crossExam[i];
+    standByBtn.classList.remove('selected');
+    changedBtn.classList.remove('selected');
+    crossExam.classList.remove('hidden');
+    responseArea.classList.add('hidden');
+
+    standByBtn.onclick = function () {
+      standByBtn.classList.add('selected');
+      changedBtn.classList.remove('selected');
+      responseArea.classList.remove('hidden');
+      playSound('toggle');
+    };
+
+    changedBtn.onclick = function () {
+      changedBtn.classList.add('selected');
+      standByBtn.classList.remove('selected');
+      responseArea.classList.remove('hidden');
+      playSound('toggle');
+    };
   }
 
   function goToNextCase() {

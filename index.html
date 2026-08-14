@@ -61,6 +61,15 @@
 
           <div id="stance-group" class="stance-group" role="group" aria-label="Pick your stance"></div>
 
+          <div id="cross-exam" class="cross-exam hidden">
+            <p class="cross-exam-kicker">Cross-examine your stance:</p>
+            <p id="cross-exam-text" class="cross-exam-text"></p>
+            <div class="cross-exam-actions">
+              <button id="btn-stand-by" class="btn-toggle" type="button">Still standing by it</button>
+              <button id="btn-changed-mind" class="btn-toggle" type="button">That changes my mind</button>
+            </div>
+          </div>
+
           <div id="response-area" class="response-area hidden">
             <label for="verdict-textarea" class="textarea-label">Defend your verdict &mdash; reference at least one piece of evidence above (or elsewhere from the case file).</label>
             <textarea id="verdict-textarea" class="verdict-textarea" rows="5" placeholder="Type your reasoning here..."></textarea>
