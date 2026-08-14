@@ -383,12 +383,18 @@
       var columnLeft = col * columnWidth;
       var guardH = 12;
 
+      // Each guard's hit-detection box still spans the full column (so
+      // it can never be slipped past), but the visible bar inside it is
+      // narrower with a margin, so adjacent columns' guards don't visually
+      // touch and read as one continuous wall.
       var guardLowerEl = document.createElement('div');
       guardLowerEl.className = 'blaster-guard';
+      guardLowerEl.innerHTML = '<span class="blaster-guard-bar"></span>';
       guardsLayer.appendChild(guardLowerEl);
 
       var guardUpperEl = document.createElement('div');
       guardUpperEl.className = 'blaster-guard';
+      guardUpperEl.innerHTML = '<span class="blaster-guard-bar"></span>';
       guardsLayer.appendChild(guardUpperEl);
 
       columns.push({
@@ -528,6 +534,10 @@
     el.style.top = by + 'px';
     s.bolts.push({ el: el, x: bx, y: by, column: column });
 
+    s.shipEl.classList.remove('recoil');
+    void s.shipEl.offsetWidth;
+    s.shipEl.classList.add('recoil');
+
     playSound('shoot');
   }
 
@@ -608,6 +618,34 @@
     flash.classList.add('flash-active');
   }
 
+  function showFloatingText(text, x, y, kind) {
+    var layer = document.getElementById('confetti-layer');
+    if (!layer) return;
+    var el = document.createElement('div');
+    el.className = 'blaster-floating-text ' + kind;
+    el.textContent = text;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    layer.appendChild(el);
+    setTimeout(function () {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, 900);
+  }
+
+  function showShockwave(x, y, color) {
+    var layer = document.getElementById('confetti-layer');
+    if (!layer) return;
+    var el = document.createElement('div');
+    el.className = 'blaster-shockwave';
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.borderColor = color;
+    layer.appendChild(el);
+    setTimeout(function () {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, 560);
+  }
+
   function resolveBlasterHit(hitColumn) {
     var s = blasterState;
     if (!s || s.resolved) return;
@@ -643,10 +681,18 @@
     playSound(isCorrect ? 'explode-good' : 'explode-bad');
     shakeArena();
 
+    var hitRect = hitColumn.targetEl.getBoundingClientRect();
+    var hitX = hitRect.left + hitRect.width / 2;
+    var hitY = hitRect.top + hitRect.height / 2;
+
     if (isCorrect) {
       flashArena();
-      var rect = hitColumn.targetEl.getBoundingClientRect();
-      burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 34);
+      burstConfetti(hitX, hitY, 46);
+      showShockwave(hitX, hitY, '#7fd88f');
+      showFloatingText('CORRECT!', hitX, hitRect.top - 16, 'good');
+    } else {
+      showShockwave(hitX, hitY, 'var(--danger)');
+      showFloatingText('MISSED!', hitX, hitRect.top - 16, 'bad');
     }
 
     stopBlasterLoop();
