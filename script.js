@@ -4,63 +4,73 @@
   // ===========================================================
   // Data
   // ===========================================================
-  // The evidence board is a sorting minigame: each clue has a short,
-  // real `snippet` (paraphrased from the same sourced reveal text, but
-  // without naming which clue it belongs to) that the player drags onto
-  // the matching case-file folder. Getting it right is a reading-
-  // comprehension task, not a blind guess. Every factual claim carries
-  // a `sources` array of {name, url} so citations render inline.
+  // Case Briefing shows every clue's full sourced fact up front so the
+  // player has genuinely read the material. Evidence Blaster then tests
+  // recall of that same material with a real (non-fabricated) multiple
+  // choice per clue — the choices are always real people/shows/numbers,
+  // never invented ones. Every factual claim carries a `sources` array
+  // of {name, url} so citations render inline.
 
   var clues = [
     {
       title: 'The Confession',
       label: 'Clue 01',
-      snippet: 'Written and produced with Jack Antonoff, this track has been described by its own singer as a tour through the parts of herself she likes least.',
       reveal: 'In her own words, Taylor Swift described "Anti-Hero" as a guided tour through the things she dislikes about herself. She wrote and produced the song with Jack Antonoff for her 2022 album Midnights.',
       sources: [
         { name: 'Today.com', url: 'https://www.today.com/popculture/music/taylor-swift-anti-hero-song-meaning-midnights-rcna50503' }
-      ]
+      ],
+      question: 'Who did Taylor Swift co-write and produce "Anti-Hero" with?',
+      choices: ['Max Martin', 'Jack Antonoff', 'Aaron Dessner'],
+      correctIndex: 1
     },
     {
       title: 'The Reference',
       label: 'Clue 02',
-      snippet: 'One lyric is widely believed to nod to a specific sitcom episode about a female writer leaning into an exaggerated, over-sexualized persona — though the singer has never confirmed it.',
-      reveal: 'Fans and critics widely connect this line to the 30 Rock episode "TGS Hates Women," featuring a female writer who leans into an exaggerated, over-sexualized persona. Swift has not confirmed this reference herself.',
+      reveal: 'Fans and critics widely connect a lyric in the song to the 30 Rock episode "TGS Hates Women," featuring a female writer who leans into an exaggerated, over-sexualized persona. Swift has not confirmed this reference herself.',
       note: 'Want the real lyric? Look it up on Genius.',
       sources: [
         { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Anti-Hero_(song)' }
-      ]
+      ],
+      question: 'The "sexy baby" lyric is widely believed to reference which show?',
+      choices: ['Saturday Night Live', '30 Rock', 'Parks and Recreation'],
+      correctIndex: 1
     },
     {
       title: 'The Bridge',
       label: 'Clue 03',
-      snippet: 'A section of the song invents a scenario where a future in-law schemes for an inheritance after the singer’s death — entirely fictional, despite how personal the rest of the song feels.',
       reveal: 'The song’s bridge narrates a fictional nightmare — Swift imagines her future daughter-in-law scheming to inherit her fortune after her death. It’s a total fabrication, not a real event, sitting inside a song widely described as one of her most "personal."',
       sources: [
         { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Anti-Hero_(song)' }
-      ]
+      ],
+      question: 'True or false: the daughter-in-law scenario in the bridge really happened.',
+      choices: ['True', 'False'],
+      correctIndex: 1
     },
     {
       title: 'The Self-Edit',
       label: 'Clue 04',
-      snippet: 'Days after release, a scene involving a bathroom scale and a self-critical word was quietly removed from the official video — unusual, since this artist rarely revises work after backlash.',
       reveal: 'In the original music video, a scene showed Swift stepping onto a bathroom scale that displayed the word "FAT" instead of a number, while her alter-ego looked on with disapproval. Days after release, Swift quietly removed this scene from the video on YouTube and Apple Music — an unusual move, since she rarely edits released work in response to public reaction.',
       sources: [
         { name: 'BBC News', url: 'https://feeds.bbci.co.uk/news/entertainment-arts-63414044' },
         { name: 'Rolling Stone', url: 'https://www.rollingstone.com/music/music-news/taylor-swift-anti-hero-video-fat-controversy-1234619554/' },
         { name: 'NBC News (THINK)', url: 'https://www.nbcnews.com/think/opinion/taylor-swift-should-not-remove-fatphobic-scene-anti-hero-video-rcna54617' },
         { name: 'Rappler', url: 'https://www.rappler.com/entertainment/celebrities/taylor-swift-anti-hero-controversy-fatphobia-feminist-politics/' }
-      ]
+      ],
+      question: 'What word appeared on the scale in the original music video?',
+      choices: ['FAT', 'UGLY', 'WORTHLESS'],
+      correctIndex: 0
     },
     {
       title: 'By the Numbers',
       label: 'Clue 05',
-      snippet: 'Eight weeks at #1, a Global 200 chart-topper, a three-decade radio record, and six trophies at one awards show.',
       reveal: '"Anti-Hero" spent 8 weeks atop the Billboard Hot 100 and topped the Billboard Global 200. It made Swift the first artist with a #1 on the Radio Songs chart across three different decades (2000s, 2010s, 2020s), and won 6 MTV Video Music Awards, including Video of the Year.',
       sources: [
         { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Anti-Hero_(song)' },
         { name: 'Rappler', url: 'https://www.rappler.com/entertainment/music/taylor-swift-wins-top-honor-mtv-video-music-awards-2023/' }
-      ]
+      ],
+      question: 'How many weeks did "Anti-Hero" spend at #1 on the Hot 100?',
+      choices: ['4 weeks', '6 weeks', '8 weeks'],
+      correctIndex: 2
     }
   ];
 
@@ -150,7 +160,7 @@
   // State
   // ===========================================================
 
-  var unlocked = [false, false, false, false, false];
+  var blasterRoundIndex = 0;
   var currentCase = 0;
   var soundEnabled = true;
   var audioCtx = null;
@@ -200,13 +210,13 @@
   }
 
   function playSound(kind) {
-    if (kind === 'unlock') {
-      playTone(660, 0.12, 'triangle');
-      playTone(880, 0.15, 'triangle', 0.09);
-    } else if (kind === 'correct') {
-      playTone(784, 0.16, 'triangle');
-    } else if (kind === 'incorrect') {
-      playTone(220, 0.18, 'sawtooth');
+    if (kind === 'shoot') {
+      playTone(1100, 0.05, 'square');
+    } else if (kind === 'explode-good') {
+      playTone(660, 0.08, 'square');
+      playTone(990, 0.12, 'square', 0.06);
+    } else if (kind === 'explode-bad') {
+      playTone(180, 0.16, 'square');
     } else if (kind === 'finale') {
       playTone(523, 0.14, 'triangle');
       playTone(659, 0.14, 'triangle', 0.1);
@@ -270,13 +280,6 @@
     return { label: clue.label, title: clue.title, text: clue.reveal, sources: clue.sources };
   }
 
-  // ===========================================================
-  // Evidence board — "File the Evidence" drag-and-sort minigame
-  // ===========================================================
-
-  var selectedCardIndex = null; // clueIndex of the tap-selected card, if any
-  var dragState = null;
-
   function shuffledIndices(n) {
     var arr = [];
     for (var i = 0; i < n; i++) arr.push(i);
@@ -289,237 +292,119 @@
     return arr;
   }
 
-  function buildInvestigationBoard() {
-    var tray = document.getElementById('evidence-tray');
-    var folderGrid = document.getElementById('folder-grid');
-    tray.innerHTML = '';
-    folderGrid.innerHTML = '';
+  // ===========================================================
+  // Case Briefing
+  // ===========================================================
 
-    // Folders stay in fixed Clue 01–05 order; tray cards are shuffled so
-    // position can't be used to cheat the match.
-    clues.forEach(function (clue, index) {
-      var folder = document.createElement('div');
-      folder.className = 'folder-target';
-      folder.setAttribute('data-index', index);
-      folder.setAttribute('role', 'button');
-      folder.setAttribute('tabindex', '0');
-      folder.setAttribute('aria-label', 'File evidence under ' + clue.label + ': ' + clue.title);
-      folder.innerHTML =
-        '<div class="folder-label">' + clue.label + '</div>' +
-        '<div class="folder-title">' + clue.title + '</div>';
-      folderGrid.appendChild(folder);
+  function buildBriefing() {
+    var list = document.getElementById('briefing-list');
+    list.innerHTML = '';
 
-      folder.addEventListener('click', function () {
-        if (folder.classList.contains('filed')) return;
-        if (selectedCardIndex == null) return;
-        var cardEl = tray.querySelector('.evidence-card[data-clue-index="' + selectedCardIndex + '"]');
-        attemptMatch(selectedCardIndex, index, cardEl);
-        selectedCardIndex = null;
-      });
-      folder.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          folder.click();
-        }
-      });
-    });
-
-    shuffledIndices(clues.length).forEach(function (index) {
-      var clue = clues[index];
+    clues.forEach(function (clue) {
       var card = document.createElement('div');
-      card.className = 'evidence-card';
-      card.setAttribute('data-clue-index', index);
-      card.setAttribute('role', 'button');
-      card.setAttribute('tabindex', '0');
-      card.setAttribute('aria-label', 'Evidence card, drag or select then choose a case file');
-      card.textContent = clue.snippet;
-      tray.appendChild(card);
-
-      card.addEventListener('pointerdown', function (e) {
-        startDrag(e, card, index);
-      });
-      card.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          toggleCardSelection(index, card);
-        }
-      });
+      card.className = 'briefing-card';
+      var html = '<div class="briefing-label">' + clue.label + '</div>';
+      html += '<h3>' + clue.title + '</h3>';
+      html += '<p>' + clue.reveal + '</p>';
+      if (clue.note) {
+        html += '<p class="clue-note">' + clue.note + '</p>';
+      }
+      html += clueSourceHtml(clue.sources);
+      card.innerHTML = html;
+      list.appendChild(card);
     });
-
-    document.addEventListener('pointermove', onDragMove);
-    document.addEventListener('pointerup', onDragEnd);
-  }
-
-  function toggleCardSelection(index, cardEl) {
-    if (selectedCardIndex === index) {
-      selectedCardIndex = null;
-      cardEl.classList.remove('selected');
-      return;
-    }
-    document.querySelectorAll('.evidence-card').forEach(function (c) {
-      c.classList.remove('selected');
-    });
-    selectedCardIndex = index;
-    cardEl.classList.add('selected');
-    playSound('toggle');
-  }
-
-  function startDrag(e, cardEl, clueIndex) {
-    if (cardEl.classList.contains('filing')) return;
-    var rect = cardEl.getBoundingClientRect();
-    dragState = {
-      cardEl: cardEl,
-      clueIndex: clueIndex,
-      offsetX: e.clientX - rect.left,
-      offsetY: e.clientY - rect.top,
-      moved: false
-    };
-    cardEl.setPointerCapture(e.pointerId);
-    cardEl.classList.add('dragging');
-    cardEl.style.position = 'fixed';
-    cardEl.style.left = rect.left + 'px';
-    cardEl.style.top = rect.top + 'px';
-    cardEl.style.width = rect.width + 'px';
-  }
-
-  function onDragMove(e) {
-    if (!dragState) return;
-    dragState.moved = true;
-    dragState.cardEl.style.left = (e.clientX - dragState.offsetX) + 'px';
-    dragState.cardEl.style.top = (e.clientY - dragState.offsetY) + 'px';
-
-    document.querySelectorAll('.folder-target').forEach(function (f) {
-      f.classList.remove('drag-over');
-    });
-    var el = document.elementFromPoint(e.clientX, e.clientY);
-    var folder = el ? el.closest('.folder-target') : null;
-    if (folder && !folder.classList.contains('filed')) {
-      folder.classList.add('drag-over');
-    }
-  }
-
-  function onDragEnd(e) {
-    if (!dragState) return;
-    var cardEl = dragState.cardEl;
-    var clueIndex = dragState.clueIndex;
-    var moved = dragState.moved;
-    cardEl.classList.remove('dragging');
-    document.querySelectorAll('.folder-target').forEach(function (f) {
-      f.classList.remove('drag-over');
-    });
-
-    if (!moved) {
-      // Tap without dragging — treat as select, not a drop attempt.
-      resetCardPosition(cardEl);
-      toggleCardSelection(clueIndex, cardEl);
-      dragState = null;
-      return;
-    }
-
-    var el = document.elementFromPoint(e.clientX, e.clientY);
-    var folder = el ? el.closest('.folder-target') : null;
-
-    if (folder && !folder.classList.contains('filed')) {
-      var folderIndex = parseInt(folder.getAttribute('data-index'), 10);
-      attemptMatch(clueIndex, folderIndex, cardEl);
-    } else {
-      resetCardPosition(cardEl);
-    }
-
-    dragState = null;
-  }
-
-  function resetCardPosition(cardEl) {
-    cardEl.style.position = '';
-    cardEl.style.left = '';
-    cardEl.style.top = '';
-    cardEl.style.width = '';
-  }
-
-  function attemptMatch(clueIndex, folderIndex, cardEl) {
-    if (clueIndex === folderIndex) {
-      fileCorrectly(clueIndex, cardEl);
-    } else {
-      resetCardPosition(cardEl);
-      cardEl.classList.add('shake');
-      playSound('incorrect');
-      setTimeout(function () {
-        cardEl.classList.remove('shake');
-      }, 350);
-    }
-  }
-
-  function fileCorrectly(clueIndex, cardEl) {
-    cardEl.classList.add('filing');
-    var clue = clues[clueIndex];
-    var folder = document.querySelector('.folder-target[data-index="' + clueIndex + '"]');
-    var rect = folder.getBoundingClientRect();
-
-    cardEl.remove();
-    markUnlocked(clueIndex);
-
-    folder.classList.add('filed');
-    folder.innerHTML =
-      '<div class="check-icon">✅</div>' +
-      '<h3>' + clue.title + '</h3>' +
-      '<p class="clue-reopen">Tap to view the file</p>';
-    folder.addEventListener('click', function () {
-      openClueModal(clueIndex);
-    });
-
-    burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
-    playSound('unlock');
-  }
-
-  function markUnlocked(index) {
-    if (unlocked[index]) return;
-    unlocked[index] = true;
-    updateCounter();
   }
 
   // ===========================================================
-  // Clue detail modal (full-size case file view)
+  // Evidence Blaster — retro arcade recall round
   // ===========================================================
 
-  function openClueModal(index) {
+  function startBlasterRound(index) {
     var clue = clues[index];
-    var body = document.getElementById('clue-modal-body');
-    var html = '<h3>' + clue.title + '</h3>';
-    html += '<p>' + clue.reveal + '</p>';
+
+    document.getElementById('blaster-round').textContent = 'Round ' + (index + 1) + ' of ' + clues.length;
+    document.getElementById('blaster-question').textContent = clue.question;
+    document.getElementById('blaster-reveal').classList.add('hidden');
+
+    var targetsEl = document.getElementById('blaster-targets');
+    targetsEl.classList.remove('paused');
+    targetsEl.innerHTML = '';
+
+    var order = shuffledIndices(clue.choices.length);
+    var slotCount = Math.max(1, clue.choices.length - 1);
+
+    order.forEach(function (choiceIdx, slot) {
+      var target = document.createElement('button');
+      target.type = 'button';
+      target.className = 'blaster-target';
+      target.textContent = clue.choices[choiceIdx];
+      target.setAttribute('data-choice-index', choiceIdx);
+      target.style.top = (8 + slot * (72 / slotCount)) + '%';
+      target.style.left = (6 + Math.random() * 12) + '%';
+      target.style.setProperty('--dx', (130 + Math.random() * 110) + 'px');
+      target.style.animationDuration = (2.3 + Math.random() * 2) + 's';
+      target.style.animationDelay = (-Math.random() * 3) + 's';
+
+      target.addEventListener('click', function () {
+        resolveBlasterShot(index, choiceIdx, target);
+      });
+
+      targetsEl.appendChild(target);
+    });
+  }
+
+  function resolveBlasterShot(clueIndex, chosenIdx, clickedEl) {
+    var clue = clues[clueIndex];
+    var isCorrect = chosenIdx === clue.correctIndex;
+    var targetsEl = document.getElementById('blaster-targets');
+
+    targetsEl.classList.add('paused');
+    var allTargets = targetsEl.querySelectorAll('.blaster-target');
+    allTargets.forEach(function (el) {
+      el.style.pointerEvents = 'none';
+      var elChoiceIdx = parseInt(el.getAttribute('data-choice-index'), 10);
+      if (elChoiceIdx === clue.correctIndex) {
+        el.classList.add('hit-correct');
+      } else if (el === clickedEl) {
+        el.classList.add('hit-wrong');
+      } else {
+        el.classList.add('faded');
+      }
+    });
+
+    playSound('shoot');
+
+    setTimeout(function () {
+      playSound(isCorrect ? 'explode-good' : 'explode-bad');
+      if (isCorrect) {
+        var rect = clickedEl.getBoundingClientRect();
+        burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      }
+      showBlasterReveal(clueIndex);
+    }, 150);
+  }
+
+  function showBlasterReveal(clueIndex) {
+    var clue = clues[clueIndex];
+
+    document.getElementById('blaster-reveal-title').textContent = clue.title;
+    document.getElementById('blaster-reveal-text').textContent = clue.reveal;
+
+    var noteEl = document.getElementById('blaster-reveal-note');
     if (clue.note) {
-      html += '<p class="clue-note">' + clue.note + '</p>';
-    }
-    html += clueSourceHtml(clue.sources);
-    body.innerHTML = html;
-
-    document.getElementById('clue-modal').classList.remove('hidden');
-    document.body.classList.add('modal-open');
-  }
-
-  function closeClueModal() {
-    document.getElementById('clue-modal').classList.add('hidden');
-    document.body.classList.remove('modal-open');
-  }
-
-  function updateCounter() {
-    var count = unlocked.filter(Boolean).length;
-    document.getElementById('unlocked-count').textContent = count;
-
-    var badge = document.querySelector('.progress-counter');
-    badge.classList.remove('pulse');
-    void badge.offsetWidth; // restart animation
-    badge.classList.add('pulse');
-
-    var proceedBtn = document.getElementById('btn-to-verdict');
-    var lockMsg = document.getElementById('board-lock-msg');
-
-    if (count >= 5) {
-      proceedBtn.disabled = false;
-      lockMsg.textContent = 'All clues unlocked. The case file is complete.';
+      noteEl.textContent = clue.note;
+      noteEl.classList.remove('hidden');
     } else {
-      proceedBtn.disabled = true;
-      lockMsg.textContent = 'Unlock all 5 clues to proceed to the verdict round.';
+      noteEl.classList.add('hidden');
     }
+
+    var links = renderSourceLinks(clue.sources);
+    document.getElementById('blaster-reveal-source').innerHTML = links ? 'Source: ' + links : '';
+
+    var nextBtn = document.getElementById('btn-blaster-next');
+    nextBtn.textContent = (clueIndex === clues.length - 1) ? 'Proceed to Verdict' : 'Next Round';
+
+    document.getElementById('blaster-reveal').classList.remove('hidden');
   }
 
   // ===========================================================
@@ -673,16 +558,27 @@
   // ===========================================================
 
   function init() {
-    buildInvestigationBoard();
+    buildBriefing();
 
     document.getElementById('btn-start').addEventListener('click', function () {
-      showScreen('screen-board');
+      showScreen('screen-briefing');
     });
 
-    document.getElementById('btn-to-verdict').addEventListener('click', function () {
-      currentCase = 0;
-      renderCase(currentCase);
-      showScreen('screen-verdict');
+    document.getElementById('btn-start-blaster').addEventListener('click', function () {
+      blasterRoundIndex = 0;
+      startBlasterRound(0);
+      showScreen('screen-blaster');
+    });
+
+    document.getElementById('btn-blaster-next').addEventListener('click', function () {
+      blasterRoundIndex++;
+      if (blasterRoundIndex >= clues.length) {
+        currentCase = 0;
+        renderCase(currentCase);
+        showScreen('screen-verdict');
+      } else {
+        startBlasterRound(blasterRoundIndex);
+      }
     });
 
     document.getElementById('btn-reveal-debate').addEventListener('click', function () {
@@ -690,12 +586,6 @@
     });
 
     document.getElementById('btn-next-case').addEventListener('click', goToNextCase);
-
-    document.getElementById('btn-close-modal').addEventListener('click', closeClueModal);
-    document.querySelector('.clue-modal-backdrop').addEventListener('click', closeClueModal);
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') closeClueModal();
-    });
 
     var soundBtn = document.getElementById('btn-sound-toggle');
     soundBtn.addEventListener('click', function () {

@@ -12,14 +12,6 @@
   <button id="btn-sound-toggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="Toggle sound effects">🔊</button>
   <div id="confetti-layer" class="confetti-layer" aria-hidden="true"></div>
 
-  <div id="clue-modal" class="clue-modal hidden" role="dialog" aria-modal="true" aria-label="Case file detail">
-    <div class="clue-modal-backdrop"></div>
-    <div class="clue-modal-content">
-      <button id="btn-close-modal" class="clue-modal-close" type="button" aria-label="Close case file">✕</button>
-      <div id="clue-modal-body" class="clue-modal-body"></div>
-    </div>
-  </div>
-
   <main id="app">
 
     <!-- ============ SCREEN 1: LANDING ============ -->
@@ -32,26 +24,48 @@
       </div>
     </section>
 
-    <!-- ============ SCREEN 2: EVIDENCE BOARD ============ -->
-    <section id="screen-board" class="screen">
-      <div class="board-wrap">
-        <header class="board-header">
-          <h2>Evidence Board</h2>
-          <p class="board-instructions">Drag each piece of evidence onto the case file it belongs to. Read carefully — the wording is your only clue. (Can't drag? Tap a card, then tap a folder.)</p>
-          <p class="progress-counter"><span id="unlocked-count">0</span>/5 clues unlocked</p>
+    <!-- ============ SCREEN 2: CASE BRIEFING ============ -->
+    <section id="screen-briefing" class="screen">
+      <div class="briefing-wrap">
+        <header class="briefing-header">
+          <h2>Case Briefing</h2>
+          <p class="briefing-instructions">Read the file before the investigation begins — you'll need it in the round ahead.</p>
         </header>
 
-        <div id="evidence-tray" class="evidence-tray"></div>
-        <div id="folder-grid" class="folder-grid"></div>
+        <div id="briefing-list" class="briefing-list"></div>
 
-        <div class="board-footer">
-          <p id="board-lock-msg" class="lock-msg">File all 5 clues to proceed to the verdict round.</p>
-          <button id="btn-to-verdict" class="btn btn-primary" type="button" disabled>File Your Verdict</button>
+        <div class="briefing-footer">
+          <button id="btn-start-blaster" class="btn btn-primary" type="button">Start the Blaster</button>
         </div>
       </div>
     </section>
 
-    <!-- ============ SCREEN 3: VERDICT ROUND ============ -->
+    <!-- ============ SCREEN 3: EVIDENCE BLASTER ============ -->
+    <section id="screen-blaster" class="screen">
+      <div class="blaster-wrap">
+        <header class="blaster-header">
+          <h2>Evidence Blaster</h2>
+          <p class="blaster-round" id="blaster-round">Round 1 of 5</p>
+        </header>
+
+        <div class="blaster-arena">
+          <p id="blaster-question" class="blaster-question"></p>
+          <div id="blaster-targets" class="blaster-targets"></div>
+        </div>
+
+        <div id="blaster-reveal" class="blaster-reveal hidden">
+          <h3 id="blaster-reveal-title"></h3>
+          <p id="blaster-reveal-text"></p>
+          <p id="blaster-reveal-note" class="clue-note hidden"></p>
+          <p id="blaster-reveal-source" class="clue-source"></p>
+          <div class="blaster-nav">
+            <button id="btn-blaster-next" class="btn btn-primary" type="button">Next Round</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SCREEN 4: VERDICT ROUND ============ -->
     <section id="screen-verdict" class="screen">
       <div class="verdict-wrap">
         <header class="verdict-header">
@@ -99,7 +113,7 @@
       </div>
     </section>
 
-    <!-- ============ SCREEN 4: FINAL ============ -->
+    <!-- ============ SCREEN 5: FINAL ============ -->
     <section id="screen-final" class="screen">
       <div class="final-wrap">
         <p class="eyebrow">Case Closed</p>
