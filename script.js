@@ -4,23 +4,36 @@
   // ===========================================================
   // Data
   // ===========================================================
-  // Each evidence tile is either a plain reveal ({body, sources}) or a
-  // guess-first mini-puzzle ({puzzle: {...}}). Every factual claim carries
-  // a `sources` array of {name, url} so citations can render inline.
+  // Every clue is a guess-first mini-puzzle: a short factual briefing
+  // (gated behind a "continue" click) sets up context, then a guess,
+  // then the full reveal. Every factual claim carries a `sources` array
+  // of {name, url} so citations render inline.
+
+  // Every clue now follows the same read-first loop: a short factual
+  // "briefing" (gated behind a continue click, so it can't be skipped),
+  // then a guess, then the full sourced reveal. This replaces the old
+  // pattern where puzzle tiles let you guess with zero context.
 
   var clues = [
     {
       title: 'The Confession',
       label: 'Clue 01',
-      body: 'In her own words, Taylor Swift described "Anti-Hero" as a guided tour through the things she dislikes about herself. She wrote and produced the song with Jack Antonoff for her 2022 album <em>Midnights</em>.',
-      sources: [
-        { name: 'Today.com', url: 'https://www.today.com/popculture/music/taylor-swift-anti-hero-song-meaning-midnights-rcna50503' }
-      ]
+      puzzle: {
+        briefing: '"Anti-Hero" is the lead single from Taylor Swift’s 2022 album Midnights — and one of the most self-critical songs of her career.',
+        question: 'True or false: Taylor Swift wrote and produced this song entirely on her own, with no credited co-writer.',
+        choices: ['True', 'False'],
+        correctIndex: 1,
+        reveal: 'In her own words, Taylor Swift described "Anti-Hero" as a guided tour through the things she dislikes about herself. She wrote and produced the song with Jack Antonoff for her 2022 album Midnights.',
+        sources: [
+          { name: 'Today.com', url: 'https://www.today.com/popculture/music/taylor-swift-anti-hero-song-meaning-midnights-rcna50503' }
+        ]
+      }
     },
     {
       title: 'The Reference',
       label: 'Clue 02',
       puzzle: {
+        briefing: 'Several lines in "Anti-Hero" are widely believed to echo other pop culture moments — without ever naming the source outright.',
         prompt: 'In one verse, Swift compares the pressure to seem non-threatening to being a "sexy baby," while describing herself as a "monster" too big to fit in.',
         question: 'What is this believed to reference?',
         choices: [
@@ -39,15 +52,22 @@
     {
       title: 'The Bridge',
       label: 'Clue 03',
-      body: 'The song’s bridge narrates a fictional nightmare — Swift imagines her future daughter-in-law scheming to inherit her fortune after her death. It’s a total fabrication, not a real event, sitting inside a song widely described as one of her most "personal."',
-      sources: [
-        { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Anti-Hero_(song)' }
-      ]
+      puzzle: {
+        briefing: 'Pop song bridges are often where an artist gets emotionally rawest — and critics have singled out "Anti-Hero"’s bridge as one of its most talked-about moments.',
+        question: 'True or false: the scenario described in the bridge is something that actually happened to Taylor Swift.',
+        choices: ['True', 'False'],
+        correctIndex: 1,
+        reveal: 'The song’s bridge narrates a fictional nightmare — Swift imagines her future daughter-in-law scheming to inherit her fortune after her death. It’s a total fabrication, not a real event, sitting inside a song widely described as one of her most "personal."',
+        sources: [
+          { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Anti-Hero_(song)' }
+        ]
+      }
     },
     {
       title: 'The Self-Edit',
       label: 'Clue 04',
       puzzle: {
+        briefing: 'Major pop stars rarely go back and quietly change a music video after it’s already been released to the public.',
         prompt: 'Days after "Anti-Hero" premiered, Taylor Swift quietly re-uploaded the music video with one scene altered.',
         question: 'True or false: this kind of after-release edit is common for a major pop star.',
         choices: [
@@ -68,6 +88,7 @@
       title: 'By the Numbers',
       label: 'Clue 05',
       puzzle: {
+        briefing: '"Anti-Hero" became one of the most commercially dominant songs of Taylor Swift’s career after its October 2022 release.',
         prompt: '"Anti-Hero" set several chart records for Taylor Swift after its 2022 release.',
         question: 'How many consecutive weeks did it spend at No. 1 on the Billboard Hot 100?',
         choices: ['4 weeks', '6 weeks', '8 weeks'],
@@ -99,8 +120,7 @@
       crossExam: [
         'Counterpoint: other critics have pointed out that confessional openness has become a reliable commercial strategy across pop music — genuine feeling and smart marketing aren’t mutually exclusive.',
         'Counterpoint: other critics have praised the song’s bluntness as unusually candid for an artist at Swift’s level of fame. Cynicism about the motive doesn’t erase that the content itself reads as unusually direct.',
-        'If it’s really both, which one wins when they conflict? If a specific line felt calculated rather than raw, would that change how "vulnerable" the song feels to you?',
-        'Most published criticism lands on one of these three readings, often more than one at once. What’s actually missing from these options for you?'
+        'If it’s really both, which one wins when they conflict? If a specific line felt calculated rather than raw, would that change how "vulnerable" the song feels to you?'
       ]
     },
     {
@@ -120,8 +140,7 @@
       crossExam: [
         'Most published criticism actually agrees with you here — outlets have read the invented bridge as dramatizing real anxiety, not undercutting it. So: is there a version of this bridge that WOULD cross a line for you?',
         'Counterpoint: most published criticism disagrees with you — outlets have generally read the invented bridge as a device that dramatizes real anxiety, not a contradiction of the song’s honesty. Are critics being too generous, or are you holding the song to a stricter standard than they are?',
-        'If the line really doesn’t matter, would you still call a song "confessional" if the whole thing were invented? Where’s your actual cutoff?',
-        'The published critical read leans toward "fiction can still be true" — but that’s not the only lens available. What’s your alternative?'
+        'If the line really doesn’t matter, would you still call a song "confessional" if the whole thing were invented? Where’s your actual cutoff?'
       ]
     },
     {
@@ -142,8 +161,7 @@
       crossExam: [
         'Counterpoint: some coverage argued the edit actually undercut the honesty of the original scene — that removing it softened something real, rather than fixing a mistake.',
         'Counterpoint: other coverage framed the same edit as a thoughtful response to legitimate criticism, not a cave to pressure.',
-        'So what’s your actual rule — is it about who’s affected, how personal the content is, or something else? Try to name it in one sentence.',
-        'Coverage at the time genuinely split between these two camps, with no consensus. Where do you land, even roughly?'
+        'So what’s your actual rule — is it about who’s affected, how personal the content is, or something else? Try to name it in one sentence.'
       ]
     },
     {
@@ -161,8 +179,7 @@
       crossExam: [
         'Counterpoint: other critics argue this kind of language lets public figures reframe accountability as a character trait rather than an actual choice they’re responsible for.',
         'Counterpoint: other critics see this same habit as a healthy, modern form of self-reflection — not an excuse, but a tool for actually processing mistakes.',
-        'Counterpoint: a skeptic would say calling it "self-awareness" still lets someone dodge the harder, less flattering word for the same behavior: a choice.',
-        'Cultural critics genuinely split on this one — some call it healthy self-reflection, others call it a dodge. Which risk worries you more?'
+        'Counterpoint: a skeptic would say calling it "self-awareness" still lets someone dodge the harder, less flattering word for the same behavior: a choice.'
       ]
     }
   ];
@@ -288,9 +305,7 @@
 
   function getClueRecapData(index) {
     var clue = clues[index];
-    var text = clue.puzzle ? clue.puzzle.reveal : clue.body;
-    var sources = clue.puzzle ? clue.puzzle.sources : clue.sources;
-    return { label: clue.label, title: clue.title, text: text, sources: sources };
+    return { label: clue.label, title: clue.title, text: clue.puzzle.reveal, sources: clue.puzzle.sources };
   }
 
   // ===========================================================
@@ -391,18 +406,26 @@
   function renderModalContent(index) {
     var clue = clues[index];
     var body = document.getElementById('clue-modal-body');
-    if (clue.puzzle) {
-      body.innerHTML = buildPuzzleModalHtml(clue);
-      wireModalPuzzleChoices(index);
-    } else {
-      body.innerHTML = '<h3>' + clue.title + '</h3>' + '<p>' + clue.body + '</p>' + clueSourceHtml(clue.sources);
-    }
+    body.innerHTML = buildPuzzleModalHtml(clue);
+    wireModalPuzzleChoices(index);
   }
 
   function buildPuzzleModalHtml(clue) {
     var p = clue.puzzle;
     var html = '<h3>' + clue.title + '</h3>';
-    html += '<p>' + p.prompt + '</p>';
+
+    if (!p.briefingAcknowledged) {
+      html += '<p class="modal-briefing-label">Case notes — read before you guess:</p>';
+      html += '<p>' + p.briefing + '</p>';
+      html += '<button type="button" class="btn btn-primary modal-continue-btn" id="btn-briefing-continue">I’ve read it — ask me</button>';
+      return html;
+    }
+
+    html += '<p class="modal-briefing-recap">' + p.briefing + '</p>';
+
+    if (p.prompt) {
+      html += '<p>' + p.prompt + '</p>';
+    }
 
     if (p.answeredIndex == null) {
       html += '<p class="modal-question">' + p.question + '</p>';
@@ -438,11 +461,23 @@
   function wireModalPuzzleChoices(index) {
     var clue = clues[index];
     var p = clue.puzzle;
+    var body = document.getElementById('clue-modal-body');
+
+    if (!p.briefingAcknowledged) {
+      var continueBtn = document.getElementById('btn-briefing-continue');
+      if (continueBtn) {
+        continueBtn.addEventListener('click', function () {
+          p.briefingAcknowledged = true;
+          playSound('toggle');
+          renderModalContent(index);
+        });
+      }
+      return;
+    }
+
     if (p.answeredIndex != null) return;
 
-    var body = document.getElementById('clue-modal-body');
     var buttons = body.querySelectorAll('.puzzle-choice-btn');
-
     buttons.forEach(function (btn) {
       btn.addEventListener('click', function () {
         var chosen = parseInt(btn.getAttribute('data-choice'), 10);
@@ -579,6 +614,13 @@
     var standByBtn = document.getElementById('btn-stand-by');
     var changedBtn = document.getElementById('btn-changed-mind');
     var responseArea = document.getElementById('response-area');
+
+    var isNoneOption = (i === c.stances.length - 1);
+    if (isNoneOption) {
+      crossExam.classList.add('hidden');
+      responseArea.classList.remove('hidden');
+      return;
+    }
 
     crossExamText.textContent = c.crossExam[i];
     standByBtn.classList.remove('selected');

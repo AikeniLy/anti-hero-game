@@ -187,6 +187,28 @@ body.modal-open {
   margin: -4px 0 14px;
 }
 
+.clue-modal-body .modal-briefing-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--lavender-dim);
+  margin: 0 0 10px;
+}
+
+.clue-modal-body .modal-briefing-recap {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-faint);
+  font-style: italic;
+  border-left: 2px solid var(--border-soft);
+  padding-left: 12px;
+  margin: 0 0 18px;
+}
+
+.clue-modal-body .modal-continue-btn {
+  margin-top: 4px;
+}
+
 .clue-modal-body .clue-note {
   font-size: 0.9rem;
   color: var(--text-faint);
