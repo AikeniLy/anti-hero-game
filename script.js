@@ -343,12 +343,12 @@
 
     var playArea = document.getElementById('blaster-play-area');
     var targetsLayer = document.getElementById('blaster-targets-layer');
-    var shieldsLayer = document.getElementById('blaster-shields-layer');
+    var guardsLayer = document.getElementById('blaster-guards-layer');
     var boltsLayer = document.getElementById('blaster-bolts-layer');
     var shipEl = document.getElementById('blaster-ship');
 
     targetsLayer.innerHTML = '';
-    shieldsLayer.innerHTML = '';
+    guardsLayer.innerHTML = '';
     boltsLayer.innerHTML = '';
     shipEl.classList.remove('hidden');
 
@@ -356,63 +356,60 @@
     var areaW = rect.width;
     var areaH = rect.height;
 
-    // Each answer gets its own column: a target drifting near the top,
-    // and a shield "obstacle" guarding it lower down that must be
-    // destroyed before a shot can reach the target itself.
+    // Each answer is a "ship" in its own column, escorted by two guard
+    // drones. The whole wave descends together (slowly, capped well
+    // above the player) — both guards in a column must be destroyed
+    // before a shot can reach the answer ship behind them.
     var order = shuffledIndices(clue.choices.length);
     var columnCount = order.length;
     var columnWidth = areaW / columnCount;
-    var targets = [];
-    var shields = [];
+    var columns = [];
 
     order.forEach(function (choiceIdx, col) {
-      var colMin = col * columnWidth + 10;
-      var colMax = (col + 1) * columnWidth - 10;
+      var centerX = col * columnWidth + columnWidth / 2;
 
-      var el = document.createElement('div');
-      el.className = 'blaster-target';
-      el.textContent = clue.choices[choiceIdx];
-      targetsLayer.appendChild(el);
+      var targetEl = document.createElement('div');
+      targetEl.className = 'blaster-target';
+      targetEl.textContent = clue.choices[choiceIdx];
+      targetsLayer.appendChild(targetEl);
+      var tw = Math.min(targetEl.offsetWidth || 90, columnWidth - 16);
+      var th = targetEl.offsetHeight || 34;
 
-      var tw = Math.min(el.offsetWidth || 90, columnWidth - 24);
-      var th = el.offsetHeight || 34;
-      var xMin = colMin;
-      var xMax = Math.max(xMin + 4, colMax - tw);
-      var x = xMin + Math.random() * (xMax - xMin);
-      var y = 8 + Math.random() * (areaH * 0.16);
-      var speed = 14 + Math.random() * 12;
-      var dir = Math.random() < 0.5 ? -1 : 1;
+      var guardOffsetX = columnWidth * 0.27;
+      var guardW = 20;
+      var guardH = 20;
 
-      el.style.left = x + 'px';
-      el.style.top = y + 'px';
+      var guardLeftEl = document.createElement('div');
+      guardLeftEl.className = 'blaster-guard';
+      guardsLayer.appendChild(guardLeftEl);
 
-      targets.push({
-        choiceIdx: choiceIdx, el: el, x: x, y: y, w: tw, h: th,
-        vx: speed * dir, xMin: xMin, xMax: xMax, column: col, alive: true
+      var guardRightEl = document.createElement('div');
+      guardRightEl.className = 'blaster-guard';
+      guardsLayer.appendChild(guardRightEl);
+
+      columns.push({
+        choiceIdx: choiceIdx,
+        column: col,
+        centerX: centerX,
+        targetEl: targetEl, targetW: tw, targetH: th, targetAlive: true,
+        targetX: centerX - tw / 2, targetY: 0,
+        guards: [
+          { el: guardLeftEl, dx: -guardOffsetX, w: guardW, h: guardH, alive: true, x: 0, y: 0 },
+          { el: guardRightEl, dx: guardOffsetX, w: guardW, h: guardH, alive: true, x: 0, y: 0 }
+        ]
       });
-
-      var shieldEl = document.createElement('div');
-      shieldEl.className = 'blaster-shield';
-      shieldEl.innerHTML = '<span></span><span></span><span></span>';
-      shieldsLayer.appendChild(shieldEl);
-
-      var sw = shieldEl.offsetWidth || 64;
-      var sh = shieldEl.offsetHeight || 16;
-      var sx = col * columnWidth + columnWidth / 2 - sw / 2;
-      var sy = areaH * 0.62;
-      shieldEl.style.left = sx + 'px';
-      shieldEl.style.top = sy + 'px';
-
-      shields.push({ el: shieldEl, x: sx, y: sy, w: sw, h: sh, hp: 1, alive: true, column: col });
     });
 
     var shipW = shipEl.offsetWidth || 28;
 
     blasterState = {
       clueIndex: index,
-      targets: targets,
-      shields: shields,
+      columns: columns,
       columnWidth: columnWidth,
+      waveY: 14,
+      maxWaveY: areaH * 0.32,
+      descentSpeed: 5,
+      guardOffsetY: 46,
       bolts: [],
       shipX: areaW / 2 - shipW / 2,
       shipW: shipW,
@@ -438,17 +435,24 @@
     s.lastTime = t;
 
     if (!s.resolved) {
-      s.targets.forEach(function (tg) {
-        if (!tg.alive) return;
-        tg.x += tg.vx * dt;
-        if (tg.x <= tg.xMin) {
-          tg.x = tg.xMin;
-          tg.vx = Math.abs(tg.vx);
-        } else if (tg.x >= tg.xMax) {
-          tg.x = tg.xMax;
-          tg.vx = -Math.abs(tg.vx);
+      if (s.waveY < s.maxWaveY) {
+        s.waveY = Math.min(s.maxWaveY, s.waveY + s.descentSpeed * dt);
+      }
+
+      s.columns.forEach(function (col) {
+        if (col.targetAlive) {
+          col.targetX = col.centerX - col.targetW / 2;
+          col.targetY = s.waveY;
+          col.targetEl.style.left = col.targetX + 'px';
+          col.targetEl.style.top = col.targetY + 'px';
         }
-        tg.el.style.left = tg.x + 'px';
+        col.guards.forEach(function (g) {
+          if (!g.alive) return;
+          g.x = col.centerX + g.dx - g.w / 2;
+          g.y = s.waveY + s.guardOffsetY;
+          g.el.style.left = g.x + 'px';
+          g.el.style.top = g.y + 'px';
+        });
       });
 
       for (var i = s.bolts.length - 1; i >= 0; i--) {
@@ -463,34 +467,36 @@
           continue;
         }
 
-        var shield = s.shields[b.column];
-        if (shield && shield.alive &&
-            b.y <= shield.y + shield.h && b.y >= shield.y - 8 &&
-            b.x >= shield.x - 6 && b.x <= shield.x + shield.w + 6) {
-          shield.hp -= 1;
-          if (shield.hp <= 0) {
-            shield.alive = false;
-            shield.el.classList.add('shield-broken');
-            playSound('explode-bad');
-          } else {
-            playSound('block');
+        var col2 = s.columns[b.column];
+        var hitGuard = null;
+        for (var g2 = 0; g2 < col2.guards.length; g2++) {
+          var guard = col2.guards[g2];
+          if (!guard.alive) continue;
+          if (b.x >= guard.x - 6 && b.x <= guard.x + guard.w + 6 &&
+              b.y <= guard.y + guard.h && b.y >= guard.y - 6) {
+            hitGuard = guard;
+            break;
           }
+        }
+
+        if (hitGuard) {
+          hitGuard.alive = false;
+          hitGuard.el.classList.add('guard-broken');
           b.el.remove();
           s.bolts.splice(i, 1);
+          playSound('block');
           updateFireButtonState();
           continue;
         }
 
-        if (!shield || !shield.alive) {
-          var target = s.targets[b.column];
-          if (target && target.alive &&
-              b.x >= target.x - 6 && b.x <= target.x + target.w + 6 &&
-              b.y <= target.y + target.h && b.y >= target.y - 6) {
-            b.el.remove();
-            s.bolts.splice(i, 1);
-            resolveBlasterHit(target);
-            break;
-          }
+        var guardsRemain = col2.guards.some(function (g) { return g.alive; });
+        if (!guardsRemain && col2.targetAlive &&
+            b.x >= col2.targetX - 6 && b.x <= col2.targetX + col2.targetW + 6 &&
+            b.y <= col2.targetY + col2.targetH && b.y >= col2.targetY - 6) {
+          b.el.remove();
+          s.bolts.splice(i, 1);
+          resolveBlasterHit(col2);
+          break;
         }
       }
     }
@@ -569,22 +575,22 @@
     });
   }
 
-  function resolveBlasterHit(target) {
+  function resolveBlasterHit(hitColumn) {
     var s = blasterState;
     if (!s || s.resolved) return;
     s.resolved = true;
 
     var clueIndex = s.clueIndex;
     var clue = clues[clueIndex];
-    var isCorrect = target.choiceIdx === clue.correctIndex;
+    var isCorrect = hitColumn.choiceIdx === clue.correctIndex;
 
-    s.targets.forEach(function (tg) {
-      if (tg === target) {
-        tg.el.classList.add(isCorrect ? 'hit-correct' : 'hit-wrong');
-      } else if (tg.choiceIdx === clue.correctIndex) {
-        tg.el.classList.add('hit-correct');
+    s.columns.forEach(function (col) {
+      if (col === hitColumn) {
+        col.targetEl.classList.add(isCorrect ? 'hit-correct' : 'hit-wrong');
+      } else if (col.choiceIdx === clue.correctIndex) {
+        col.targetEl.classList.add('hit-correct');
       } else {
-        tg.el.classList.add('faded');
+        col.targetEl.classList.add('faded');
       }
     });
 
@@ -596,7 +602,7 @@
 
     playSound(isCorrect ? 'explode-good' : 'explode-bad');
     if (isCorrect) {
-      var rect = target.el.getBoundingClientRect();
+      var rect = hitColumn.targetEl.getBoundingClientRect();
       burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
     }
 
@@ -789,8 +795,13 @@
     });
 
     document.getElementById('btn-start-blaster').addEventListener('click', function () {
-      blasterRoundIndex = 0;
       showScreen('screen-blaster');
+    });
+
+    document.getElementById('btn-blaster-start-round').addEventListener('click', function () {
+      blasterRoundIndex = 0;
+      document.getElementById('blaster-intro').classList.add('hidden');
+      document.getElementById('blaster-play-wrap').classList.remove('hidden');
       startBlasterRound(0);
     });
 
