@@ -731,8 +731,8 @@
 
     document.getElementById('btn-start-blaster').addEventListener('click', function () {
       blasterRoundIndex = 0;
-      startBlasterRound(0);
       showScreen('screen-blaster');
+      startBlasterRound(0);
     });
 
     document.getElementById('btn-blaster-next').addEventListener('click', function () {
