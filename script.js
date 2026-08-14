@@ -375,10 +375,10 @@
       var tw = Math.min(targetEl.offsetWidth || 90, columnWidth - 16);
       var th = targetEl.offsetHeight || 34;
 
-      // Guards are centered in the column, stacked directly in the bolt's
-      // flight path (not off to the sides) so they visibly and reliably
-      // block the shot instead of leaving a gap a bolt can slip through.
-      var guardW = Math.min(columnWidth * 0.72, 80);
+      // Guards span the FULL column width — not just centered under the
+      // target — so any bolt fired anywhere in this column is guaranteed
+      // to hit an alive guard first. No way to slip past on the sides.
+      var columnLeft = col * columnWidth;
       var guardH = 12;
 
       var guardLowerEl = document.createElement('div');
@@ -393,11 +393,12 @@
         choiceIdx: choiceIdx,
         column: col,
         centerX: centerX,
+        columnLeft: columnLeft,
         targetEl: targetEl, targetW: tw, targetH: th, targetAlive: true,
         targetX: centerX - tw / 2, targetY: 0,
         guards: [
-          { el: guardLowerEl, gap: 70, w: guardW, h: guardH, alive: true, x: 0, y: 0 },
-          { el: guardUpperEl, gap: 36, w: guardW, h: guardH, alive: true, x: 0, y: 0 }
+          { el: guardLowerEl, gap: 100, w: columnWidth, h: guardH, alive: true, x: columnLeft, y: 0 },
+          { el: guardUpperEl, gap: 50, w: columnWidth, h: guardH, alive: true, x: columnLeft, y: 0 }
         ]
       });
     });
@@ -449,7 +450,6 @@
         }
         col.guards.forEach(function (g) {
           if (!g.alive) return;
-          g.x = col.centerX - g.w / 2;
           g.y = s.waveY + g.gap;
           g.el.style.left = g.x + 'px';
           g.el.style.top = g.y + 'px';
@@ -512,15 +512,13 @@
 
     var column = Math.max(0, Math.min(s.columns.length - 1, Math.floor((s.shipX + s.shipW / 2) / s.columnWidth)));
 
-    // Bolt travels straight up the center of whichever column the ship is
-    // over, so it lines up exactly with that column's centered guards —
-    // no near-miss gaps to slip through.
-    var centerX = s.columns[column].centerX;
-
+    // Bolt fires from the ship's actual position — guards now span the
+    // full column width, so wherever the ship is within that column,
+    // an alive guard is guaranteed to be in the way.
     var el = document.createElement('div');
     el.className = 'blaster-bolt';
     s.boltsLayer.appendChild(el);
-    var bx = centerX - 2;
+    var bx = s.shipX + s.shipW / 2 - 2;
     var by = s.areaH - 34;
     el.style.left = bx + 'px';
     el.style.top = by + 'px';
