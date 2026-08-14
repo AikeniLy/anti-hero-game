@@ -163,6 +163,8 @@
   var blasterRoundIndex = 0;
   var blasterState = null;
   var blasterRafId = null;
+  var blasterCorrectCount = 0;
+  var blasterRoundsAnswered = 0;
   var currentCase = 0;
   var soundEnabled = true;
   var audioCtx = null;
@@ -484,6 +486,8 @@
         if (hitGuard) {
           hitGuard.alive = false;
           hitGuard.el.classList.add('guard-broken');
+          var guardRect = hitGuard.el.getBoundingClientRect();
+          burstConfetti(guardRect.left + guardRect.width / 2, guardRect.top + guardRect.height / 2, 8);
           b.el.remove();
           s.bolts.splice(i, 1);
           playSound('block');
@@ -531,6 +535,12 @@
     var btn = document.getElementById('btn-blaster-fire');
     if (!btn) return;
     btn.disabled = !(blasterState && !blasterState.resolved);
+  }
+
+  function updateBlasterScore() {
+    var el = document.getElementById('blaster-score');
+    if (!el) return;
+    el.textContent = 'Correct: ' + blasterCorrectCount + ' / ' + blasterRoundsAnswered;
   }
 
   function wireBlasterControls() {
@@ -582,6 +592,22 @@
     });
   }
 
+  function shakeArena() {
+    var arena = document.querySelector('.blaster-arena');
+    if (!arena) return;
+    arena.classList.remove('shake-arena');
+    void arena.offsetWidth; // restart animation
+    arena.classList.add('shake-arena');
+  }
+
+  function flashArena() {
+    var flash = document.getElementById('blaster-flash');
+    if (!flash) return;
+    flash.classList.remove('flash-active');
+    void flash.offsetWidth;
+    flash.classList.add('flash-active');
+  }
+
   function resolveBlasterHit(hitColumn) {
     var s = blasterState;
     if (!s || s.resolved) return;
@@ -591,11 +617,18 @@
     var clue = clues[clueIndex];
     var isCorrect = hitColumn.choiceIdx === clue.correctIndex;
 
+    blasterRoundsAnswered++;
+    if (isCorrect) blasterCorrectCount++;
+    updateBlasterScore();
+
+    // The correct answer always stays fully visible and clearly marked —
+    // it never vanishes, even if you picked wrong, so you can see what
+    // you should have hit. Only your own wrong pick gets marked as wrong.
     s.columns.forEach(function (col) {
-      if (col === hitColumn) {
-        col.targetEl.classList.add(isCorrect ? 'hit-correct' : 'hit-wrong');
-      } else if (col.choiceIdx === clue.correctIndex) {
-        col.targetEl.classList.add('hit-correct');
+      if (col.choiceIdx === clue.correctIndex) {
+        col.targetEl.classList.add('reveal-correct');
+      } else if (col === hitColumn) {
+        col.targetEl.classList.add('reveal-wrong');
       } else {
         col.targetEl.classList.add('faded');
       }
@@ -608,9 +641,12 @@
     updateFireButtonState();
 
     playSound(isCorrect ? 'explode-good' : 'explode-bad');
+    shakeArena();
+
     if (isCorrect) {
+      flashArena();
       var rect = hitColumn.targetEl.getBoundingClientRect();
-      burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 34);
     }
 
     stopBlasterLoop();
@@ -637,8 +673,17 @@
     var links = renderSourceLinks(clue.sources);
     document.getElementById('blaster-reveal-source').innerHTML = links ? 'Source: ' + links : '';
 
+    var isLastRound = clueIndex === clues.length - 1;
+    var tallyEl = document.getElementById('blaster-reveal-tally');
+    if (isLastRound) {
+      tallyEl.textContent = 'You got ' + blasterCorrectCount + ' of ' + clues.length + ' right in the Blaster round — nice work either way.';
+      tallyEl.classList.remove('hidden');
+    } else {
+      tallyEl.classList.add('hidden');
+    }
+
     var nextBtn = document.getElementById('btn-blaster-next');
-    nextBtn.textContent = (clueIndex === clues.length - 1) ? 'Proceed to Verdict' : 'Next Round';
+    nextBtn.textContent = isLastRound ? 'Proceed to Verdict' : 'Next Round';
 
     document.getElementById('blaster-reveal').classList.remove('hidden');
   }
@@ -807,6 +852,9 @@
 
     document.getElementById('btn-blaster-start-round').addEventListener('click', function () {
       blasterRoundIndex = 0;
+      blasterCorrectCount = 0;
+      blasterRoundsAnswered = 0;
+      updateBlasterScore();
       document.getElementById('blaster-intro').classList.add('hidden');
       document.getElementById('blaster-play-wrap').classList.remove('hidden');
       startBlasterRound(0);

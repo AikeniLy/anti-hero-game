@@ -317,9 +317,22 @@ body {
 .blaster-round {
   color: var(--text-faint);
   font-size: 0.85rem;
-  margin: 0;
+  margin: 0 0 6px;
   font-family: "Courier New", monospace;
   letter-spacing: 0.05em;
+}
+
+.blaster-score {
+  display: inline-block;
+  color: var(--gold-bright);
+  font-weight: 700;
+  font-size: 0.85rem;
+  font-family: "Courier New", monospace;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin: 0;
 }
 
 .blaster-arena {
@@ -334,6 +347,38 @@ body {
   overflow: hidden;
   padding: 22px 16px 20px;
   margin-bottom: 20px;
+}
+
+.blaster-arena.shake-arena {
+  animation: arenaShake 320ms ease;
+}
+
+@keyframes arenaShake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-7px); }
+  30% { transform: translateX(7px); }
+  45% { transform: translateX(-5px); }
+  60% { transform: translateX(5px); }
+  75% { transform: translateX(-3px); }
+  90% { transform: translateX(3px); }
+}
+
+.blaster-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(240, 207, 106, 0.55), transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.blaster-flash.flash-active {
+  animation: flashPop 550ms ease;
+}
+
+@keyframes flashPop {
+  0% { opacity: 0.95; }
+  100% { opacity: 0; }
 }
 
 .blaster-intro {
@@ -424,16 +469,47 @@ body {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
 }
 
-.blaster-target.hit-correct {
-  animation: targetExplodeGood 500ms ease forwards;
+/* The correct answer always ends up marked this way and stays fully
+   visible — even if you picked wrong — so you can see what you should
+   have hit instead of it just vanishing along with your guess. */
+.blaster-target.reveal-correct {
   border-color: #7fd88f;
-  background: rgba(127, 216, 143, 0.35);
+  background: rgba(127, 216, 143, 0.3);
+  box-shadow: 0 0 22px rgba(127, 216, 143, 0.7);
+  animation: revealPop 550ms ease;
 }
 
-.blaster-target.hit-wrong {
-  animation: targetExplodeBad 500ms ease forwards;
+.blaster-target.reveal-correct::after {
+  content: '✓ CORRECT';
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #7fd88f;
+  white-space: nowrap;
+}
+
+.blaster-target.reveal-wrong {
   border-color: var(--danger);
-  background: rgba(224, 116, 138, 0.35);
+  background: rgba(224, 116, 138, 0.3);
+  opacity: 0.85;
+  animation: wrongShake 450ms ease;
+}
+
+.blaster-target.reveal-wrong::after {
+  content: '✗ your shot';
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--danger);
+  white-space: nowrap;
 }
 
 .blaster-target.faded {
@@ -441,15 +517,19 @@ body {
   transition: opacity 0.3s ease;
 }
 
-@keyframes targetExplodeGood {
+@keyframes revealPop {
   0%   { transform: scale(1); }
-  40%  { transform: scale(1.35); }
-  100% { transform: scale(0); opacity: 0; }
+  40%  { transform: scale(1.3); }
+  70%  { transform: scale(0.95); }
+  100% { transform: scale(1); }
 }
 
-@keyframes targetExplodeBad {
-  0%   { transform: scale(1) rotate(0deg); }
-  100% { transform: scale(0.2) rotate(25deg); opacity: 0; }
+@keyframes wrongShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
 }
 
 .blaster-bolt {
@@ -525,6 +605,16 @@ body {
   line-height: 1.6;
   color: var(--text-main);
   margin: 0 0 10px;
+}
+
+.blaster-reveal-tally {
+  font-weight: 700;
+  color: var(--gold-bright);
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 6px;
 }
 
 .blaster-nav {
