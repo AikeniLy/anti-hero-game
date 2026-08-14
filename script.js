@@ -321,96 +321,134 @@
 
       var back = document.createElement('div');
       back.className = 'card-face card-back';
-      back.innerHTML = renderClueBack(clue);
+      back.setAttribute('role', 'button');
+      back.setAttribute('tabindex', '0');
+      back.setAttribute('aria-label', 'Reopen ' + clue.label);
+      back.innerHTML =
+        '<div class="clue-back-summary">' +
+        '<div class="check-icon">✅</div>' +
+        '<h3>' + clue.title + '</h3>' +
+        '<p class="clue-reopen">Tap to reopen the file</p>' +
+        '</div>';
 
       inner.appendChild(front);
       inner.appendChild(back);
       tile.appendChild(inner);
       grid.appendChild(tile);
 
-      function openTile() {
-        if (tile.classList.contains('flipped')) return;
-        tile.classList.add('flipped');
-        markUnlocked(index);
-
-        var rect = front.getBoundingClientRect();
-        burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
-        playSound('unlock');
+      function unlockAndOpen() {
+        if (!tile.classList.contains('flipped')) {
+          tile.classList.add('flipped');
+          markUnlocked(index);
+          var rect = front.getBoundingClientRect();
+          burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
+          playSound('unlock');
+        }
+        openClueModal(index);
       }
 
-      front.addEventListener('click', openTile);
+      front.addEventListener('click', unlockAndOpen);
       front.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          openTile();
+          unlockAndOpen();
+        }
+      });
+
+      back.addEventListener('click', function () {
+        openClueModal(index);
+      });
+      back.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openClueModal(index);
         }
       });
     });
-  }
-
-  function renderClueBack(clue) {
-    if (clue.puzzle) {
-      return renderPuzzleBack(clue);
-    }
-    return '<h3>' + clue.title + '</h3>' + '<p>' + clue.body + '</p>' + clueSourceHtml(clue.sources);
-  }
-
-  function renderPuzzleBack(clue) {
-    var p = clue.puzzle;
-    var html = '<h3>' + clue.title + '</h3>';
-    html += '<p>' + p.prompt + '</p>';
-    html += '<p style="font-size:0.78rem;color:var(--text-faint);">' + p.question + '</p>';
-    html += '<div class="puzzle-choices">';
-    p.choices.forEach(function (choice, i) {
-      html += '<button type="button" class="puzzle-choice-btn" data-choice="' + i + '">' +
-        String.fromCharCode(97 + i) + ') ' + choice + '</button>';
-    });
-    html += '</div>';
-    return html;
   }
 
   function markUnlocked(index) {
     if (unlocked[index]) return;
     unlocked[index] = true;
     updateCounter();
+  }
 
-    if (clues[index].puzzle) {
-      wirePuzzleChoices(index);
+  // ===========================================================
+  // Clue detail modal (full-size case file view)
+  // ===========================================================
+
+  function openClueModal(index) {
+    renderModalContent(index);
+    document.getElementById('clue-modal').classList.remove('hidden');
+    document.body.classList.add('modal-open');
+  }
+
+  function closeClueModal() {
+    document.getElementById('clue-modal').classList.add('hidden');
+    document.body.classList.remove('modal-open');
+  }
+
+  function renderModalContent(index) {
+    var clue = clues[index];
+    var body = document.getElementById('clue-modal-body');
+    if (clue.puzzle) {
+      body.innerHTML = buildPuzzleModalHtml(clue);
+      wireModalPuzzleChoices(index);
+    } else {
+      body.innerHTML = '<h3>' + clue.title + '</h3>' + '<p>' + clue.body + '</p>' + clueSourceHtml(clue.sources);
     }
   }
 
-  function wirePuzzleChoices(index) {
+  function buildPuzzleModalHtml(clue) {
+    var p = clue.puzzle;
+    var html = '<h3>' + clue.title + '</h3>';
+    html += '<p>' + p.prompt + '</p>';
+
+    if (p.answeredIndex == null) {
+      html += '<p class="modal-question">' + p.question + '</p>';
+      html += '<div class="puzzle-choices">';
+      p.choices.forEach(function (choice, i) {
+        html += '<button type="button" class="puzzle-choice-btn" data-choice="' + i + '">' +
+          String.fromCharCode(97 + i) + ') ' + choice + '</button>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div class="puzzle-choices">';
+      p.choices.forEach(function (choice, i) {
+        var cls = 'puzzle-choice-btn';
+        if (i === p.correctIndex) {
+          cls += ' correct';
+        } else if (i === p.answeredIndex) {
+          cls += ' incorrect';
+        }
+        html += '<button type="button" class="' + cls + '" disabled>' +
+          String.fromCharCode(97 + i) + ') ' + choice + '</button>';
+      });
+      html += '</div>';
+      html += '<p>' + p.reveal + '</p>';
+      if (p.note) {
+        html += '<p class="clue-note">' + p.note + '</p>';
+      }
+      html += clueSourceHtml(p.sources);
+    }
+
+    return html;
+  }
+
+  function wireModalPuzzleChoices(index) {
     var clue = clues[index];
     var p = clue.puzzle;
-    var tile = document.querySelector('.evidence-tile[data-index="' + index + '"]');
-    var buttons = tile.querySelectorAll('.puzzle-choice-btn');
+    if (p.answeredIndex != null) return;
+
+    var body = document.getElementById('clue-modal-body');
+    var buttons = body.querySelectorAll('.puzzle-choice-btn');
 
     buttons.forEach(function (btn) {
       btn.addEventListener('click', function () {
         var chosen = parseInt(btn.getAttribute('data-choice'), 10);
-        var isCorrect = chosen === p.correctIndex;
-
-        buttons.forEach(function (b, i) {
-          b.disabled = true;
-          if (i === p.correctIndex) {
-            b.classList.add('correct');
-          } else if (i === chosen) {
-            b.classList.add('incorrect');
-          }
-        });
-
-        playSound(isCorrect ? 'correct' : 'incorrect');
-
-        var backFace = tile.querySelector('.card-back');
-        var revealBlock = document.createElement('div');
-        revealBlock.style.marginTop = '10px';
-        var html = '<p>' + p.reveal + '</p>';
-        if (p.note) {
-          html += '<p class="clue-note">' + p.note + '</p>';
-        }
-        html += clueSourceHtml(p.sources);
-        revealBlock.innerHTML = html;
-        backFace.appendChild(revealBlock);
+        p.answeredIndex = chosen;
+        playSound(chosen === p.correctIndex ? 'correct' : 'incorrect');
+        renderModalContent(index);
       });
     });
   }
@@ -597,6 +635,12 @@
     });
 
     document.getElementById('btn-next-case').addEventListener('click', goToNextCase);
+
+    document.getElementById('btn-close-modal').addEventListener('click', closeClueModal);
+    document.querySelector('.clue-modal-backdrop').addEventListener('click', closeClueModal);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeClueModal();
+    });
 
     var soundBtn = document.getElementById('btn-sound-toggle');
     soundBtn.addEventListener('click', function () {

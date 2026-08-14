@@ -105,6 +105,137 @@ body {
   100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.4); opacity: 0; }
 }
 
+/* ---------- Clue detail modal (full-size case file view) ---------- */
+
+body.modal-open {
+  overflow: hidden;
+}
+
+.clue-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.clue-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 5, 16, 0.85);
+  animation: modalFadeIn 0.2s ease;
+}
+
+.clue-modal-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 640px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: linear-gradient(155deg, #201a3d, #150f2b);
+  border: 1px solid var(--gold);
+  border-radius: 18px;
+  padding: 36px 32px;
+  box-shadow: var(--shadow-lg);
+  animation: modalPop 0.25s ease;
+}
+
+.clue-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(201, 182, 255, 0.08);
+  border: 1px solid var(--border-soft);
+  color: var(--text-main);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+
+.clue-modal-close:hover {
+  border-color: var(--gold);
+}
+
+.clue-modal-close:active {
+  transform: scale(0.92);
+}
+
+.clue-modal-body h3 {
+  font-size: 1.7rem;
+  line-height: 1.25;
+  margin: 0 0 20px;
+  padding-right: 32px;
+  color: var(--gold-bright);
+}
+
+.clue-modal-body p {
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: var(--text-main);
+  margin: 0 0 18px;
+}
+
+.clue-modal-body .modal-question {
+  font-size: 0.95rem;
+  color: var(--text-faint);
+  margin: -4px 0 14px;
+}
+
+.clue-modal-body .clue-note {
+  font-size: 0.9rem;
+  color: var(--text-faint);
+  font-style: italic;
+  margin: 0 0 12px;
+}
+
+.clue-modal-body .clue-source {
+  font-size: 0.85rem;
+  margin-top: 16px;
+}
+
+.clue-modal-body .puzzle-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 4px 0 8px;
+}
+
+.clue-modal-body .puzzle-choice-btn {
+  font-size: 1.05rem;
+  padding: 14px 16px;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.94) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (max-width: 480px) {
+  .clue-modal-content {
+    padding: 28px 20px;
+    max-height: 88vh;
+  }
+
+  .clue-modal-body h3 {
+    font-size: 1.4rem;
+  }
+
+  .clue-modal-body p {
+    font-size: 1.05rem;
+  }
+}
+
 /* ---------- Screens ---------- */
 
 .screen {
@@ -327,6 +458,27 @@ body {
   transform: rotateY(180deg);
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
+  cursor: pointer;
+}
+
+.clue-back-summary {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.clue-back-summary .check-icon {
+  font-size: 1.8rem;
+}
+
+.clue-back-summary .clue-reopen {
+  font-size: 0.85rem;
+  color: var(--lavender-dim);
+  margin: 0;
 }
 
 .card-back h3 {
